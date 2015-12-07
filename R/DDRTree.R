@@ -6,15 +6,41 @@
 #' @return a matrix (W) with N x L dimension
 #' @export
 #'
-pca_projection <- function(C, L) {
-    eigen_res <- eigen(C)
+# pca_projection_R <- function(C, L) {
+#     eigen_res <- eigen(C)
+#
+#     U <- eigen_res$vector
+#     V <- eigen_res$value
+#     eig_sort <- sort(V, decreasing = T, index.return = T)
+#     eig_idx <- eig_sort$ix
+#
+#     W <- U[, eig_idx[1:L]]
+# }
 
-    U <- eigen_res$vector
-    V <- eigen_res$value
-    eig_sort <- sort(V, decreasing = T, index.return = T)
-    eig_idx <- eig_sort$ix
+pca_projection_R <- function(C, L) {
+    #message("using irlba")
+    eigen_res <- irlba(C, nv = L)
 
-    W <- U[, eig_idx[1:L]]
+    U <- eigen_res$u
+    V <- eigen_res$v
+#     eig_sort <- sort(V, decreasing = T, index.return = T)
+#     eig_idx <- eig_sort$ix
+#
+#     W <- U[, eig_idx[1:L]]
+}
+
+get_major_eigenvalue <- function(C, L) {
+    if (L >= min(dim(C))){
+        return (norm(C, '2')^2);
+    }else{
+        #message("using irlba")
+        eigen_res <- irlba(C, nv = L)
+        return (max(abs(eigen_res$v)))
+    }
+    #     eig_sort <- sort(V, decreasing = T, index.return = T)
+    #     eig_idx <- eig_sort$ix
+    #
+    #     W <- U[, eig_idx[1:L]]
 }
 
 #' perform PCA projection
@@ -25,7 +51,7 @@ pca_projection <- function(C, L) {
 #' @return a numeric value for the different between a and b
 #' @export
 #'
-sqdist <- function(a, b) {
+sqdist_R <- function(a, b) {
     aa <- colSums(a^2)
     bb <- colSums(b^2)
     ab <- t(a) %*% b
@@ -56,13 +82,13 @@ sqdist <- function(a, b) {
 #' @export
 #' gamma   : regularization parameter for k-means
 #'
-DDRTree <- function(X, params, verbose = F) {
+DDRTree_R <- function(X, params, verbose = F) {
 
     D <- nrow(X)
     N <- ncol(X)
 
     #initialization
-    W <- pca_projection(X %*% t(X), params$dim)
+    W <- pca_projection_R(X %*% t(X), params$dim)
     Z <- t(W) %*% X
 
     if(!('ncenter' %in% names(params))) {
@@ -70,6 +96,7 @@ DDRTree <- function(X, params, verbose = F) {
         Y <- Z[, 1:K]
     }
     else {
+        message("running k-means clustering")
         K <- params$ncenter
         kmean_res <- kmeans(t(Z), K)
         Y <- kmean_res$centers
@@ -82,7 +109,7 @@ DDRTree <- function(X, params, verbose = F) {
     for(iter in 1:params$maxIter) {
 
         # 		#Kruskal method to find optimal B (use RBGL algorithm: http://stackoverflow.com/questions/16605825/minimum-spaning-tree-with-kruskal-algorithm)
-        distsqMU <- sqdist(Y, Y)
+        distsqMU <- sqdist_R(Y, Y)
         # 		#convert with graph packagege to BAM class of graph an calculate mst
         # 		mstKruskalBAM <- mstree.kruskal(graphBAM(as.data.frame(distsqMU)))
         # 		#build new data frame with resut
@@ -107,11 +134,13 @@ DDRTree <- function(X, params, verbose = F) {
         # stree <- graph.data.frame(mstKruskalDF, directed=FALSE)
 
         #compute R usingmean-shift update rule
-        distZY <- sqdist(Z, Y)
+        distZY <- sqdist_R(Z, Y)
         min_dist <- matrix(rep(apply(distZY, 1, min), times = K), ncol = K, byrow = F)
         tmp_distZY <- distZY - min_dist
         tmp_R <- exp(-tmp_distZY / params$sigma)
+        #print(tmp_R)
         R <- tmp_R / matrix(rep(rowSums(tmp_R), times = K), byrow = F, ncol = K)
+        #print(R)
         Gamma <- matrix(rep(0, ncol(R) ^ 2), nrow = ncol(R))
         diag(Gamma) <- colSums(R)
 
@@ -141,12 +170,65 @@ DDRTree <- function(X, params, verbose = F) {
         Q <- 1 / (params$gamma + 1) * (diag(1, N) + tmp %*% t(R))
         C <- X %*% Q
         tmp1 <- C %*% t(X)
-        W <- pca_projection((tmp1 + t(tmp1)) / 2, params$dim)
+        W <- pca_projection_R((tmp1 + t(tmp1)) / 2, params$dim)
         Z <- t(W) %*% C
         Y <- t(solve((params$lambda / params$gamma * L + Gamma), t(Z %*% R)))
+        #print (Y)
     }
 
     history$objs <- objs
 
     return(list(W = W, Z = Z, stree = stree, Y = Y, history = history))
 }
+
+
+
+# X : DxN data matrix
+# params.
+#       maxIter : maximum iterations
+#       eps     : relative objective difference
+#       dim     : reduced dimension
+#       lambda  : regularization parameter for inverse graph embedding
+#       sigma   : bandwidth parameter
+#       gamma   : regularization parameter for k-means
+#' Perform DDRTree construction
+#' @param X a matrix with D x N dimension which is needed to perform DDRTree construction
+#' @param params a list with the following parameters:
+#' maxIter : maximum iterations
+#' eps     : relative objective difference
+#' dim     : reduced dimension
+#' lambda  : regularization parameter for inverse graph embedding
+#' sigma   : bandwidth parameter
+#' gamma   : regularization parameter for k-means
+#' @return a list with W, Z, stree, Y, history
+#' @export
+#' gamma   : regularization parameter for k-means
+#'
+DDRTree_cpp <- function(X, params, verbose = F) {
+
+    D <- nrow(X)
+    N <- ncol(X)
+
+    #initialization
+    W <- pca_projection_R(X %*% t(X), params$dim)
+    Z <- t(W) %*% X
+
+    if(!('ncenter' %in% names(params))) {
+        K <- N
+        Y <- Z[, 1:K]
+    }
+    else {
+        K <- params$ncenter
+        kmean_res <- kmeans(t(Z), K)
+        Y <- kmean_res$centers
+        Y <- t(Y)
+    }
+
+    ddrtree_res <- DDRTree_reduce_dim(X, Z, Y, W,  params$dim, params$maxIter, K,  params$sigma,  params$lambda,  params$gamma, params$eps)
+
+    return(list(W = ddrtree_res$W, Z = ddrtree_res$Z, stree = ddrtree_res$stree, Y = ddrtree_res$Y, history = NULL))
+}
+
+
+
+
