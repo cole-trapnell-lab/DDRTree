@@ -24,7 +24,7 @@ test_that("DDRTRee() perform the DDRTree construction", {
 
     pca_res <- pca_projection(X[, ] %*% t(X [, ]), 2)
     sqdist_res <- sqdist(X, X)
-    params <- list(maxIter = 20, eps = 1e-3, dim = 2, lambda = 2435, sigma = 1e-3, gamma = 10)
+    params <- list(maxIter = 20, eps = 1e-3, dim = 2, lambda = 2435, sigma = 1e-3, gamma = 10, verbose=T)
     system.time(DDRTree_res <- DDRTree_cpp(X = X, params = params, T))
     qplot(x = DDRTree_res$Y[1, ], y = DDRTree_res$Y[2, ])
 

@@ -224,7 +224,7 @@ DDRTree_cpp <- function(X, params, verbose = F) {
         Y <- t(Y)
     }
 
-    ddrtree_res <- DDRTree_reduce_dim(X, Z, Y, W,  params$dim, params$maxIter, K,  params$sigma,  params$lambda,  params$gamma, params$eps)
+    ddrtree_res <- DDRTree_reduce_dim(X, Z, Y, W,  params$dim, params$maxIter, K,  params$sigma,  params$lambda,  params$gamma, params$eps, params$verbose)
 
     return(list(W = ddrtree_res$W, Z = ddrtree_res$Z, stree = ddrtree_res$stree, Y = ddrtree_res$Y, history = NULL))
 }

@@ -31,8 +31,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // DDRTree_reduce_dim
-Rcpp::List DDRTree_reduce_dim(SEXP R_X, SEXP R_Z, SEXP R_Y, SEXP R_W, SEXP R_dimensions, SEXP R_maxiter, SEXP R_num_clusters, SEXP R_sigma, SEXP R_lambda, SEXP R_gamma, SEXP R_eps);
-RcppExport SEXP DDRTree_DDRTree_reduce_dim(SEXP R_XSEXP, SEXP R_ZSEXP, SEXP R_YSEXP, SEXP R_WSEXP, SEXP R_dimensionsSEXP, SEXP R_maxiterSEXP, SEXP R_num_clustersSEXP, SEXP R_sigmaSEXP, SEXP R_lambdaSEXP, SEXP R_gammaSEXP, SEXP R_epsSEXP) {
+Rcpp::List DDRTree_reduce_dim(SEXP R_X, SEXP R_Z, SEXP R_Y, SEXP R_W, SEXP R_dimensions, SEXP R_maxiter, SEXP R_num_clusters, SEXP R_sigma, SEXP R_lambda, SEXP R_gamma, SEXP R_eps, SEXP R_verbose);
+RcppExport SEXP DDRTree_DDRTree_reduce_dim(SEXP R_XSEXP, SEXP R_ZSEXP, SEXP R_YSEXP, SEXP R_WSEXP, SEXP R_dimensionsSEXP, SEXP R_maxiterSEXP, SEXP R_num_clustersSEXP, SEXP R_sigmaSEXP, SEXP R_lambdaSEXP, SEXP R_gammaSEXP, SEXP R_epsSEXP, SEXP R_verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -47,7 +47,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< SEXP >::type R_lambda(R_lambdaSEXP);
     Rcpp::traits::input_parameter< SEXP >::type R_gamma(R_gammaSEXP);
     Rcpp::traits::input_parameter< SEXP >::type R_eps(R_epsSEXP);
-    __result = Rcpp::wrap(DDRTree_reduce_dim(R_X, R_Z, R_Y, R_W, R_dimensions, R_maxiter, R_num_clusters, R_sigma, R_lambda, R_gamma, R_eps));
+    Rcpp::traits::input_parameter< SEXP >::type R_verbose(R_verboseSEXP);
+    __result = Rcpp::wrap(DDRTree_reduce_dim(R_X, R_Z, R_Y, R_W, R_dimensions, R_maxiter, R_num_clusters, R_sigma, R_lambda, R_gamma, R_eps, R_verbose));
     return __result;
 END_RCPP
 }
