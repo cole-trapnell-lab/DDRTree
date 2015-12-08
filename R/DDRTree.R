@@ -209,6 +209,7 @@ DDRTree_cpp <- function(X,
                         maxIter = 20,
                         sigma = 1e-3,
                         lambda = NULL,
+                        ncenter = NULL,
                         gamma = 10,
                         tol = 1e-3,
                         verbose = F) {
@@ -217,18 +218,18 @@ DDRTree_cpp <- function(X,
     N <- ncol(X)
 
     #initialization
-    W <- pca_projection_R(X %*% t(X), params$dim)
+    W <- pca_projection_R(X %*% t(X), dimensions)
     Z <- t(W) %*% X
 
-    if(!('ncenter' %in% names(params))) {
+   if(is.null(ncenter)) {
         K <- N
         Y <- Z[, 1:K]
     }
     else {
-        K <- params$ncenter
-        kmean_res <- kmeans(t(Z), K)
-        Y <- kmean_res$centers
-        Y <- t(Y)
+       K <- ncenter
+       kmean_res <- kmeans(t(Z), K)
+       Y <- kmean_res$centers
+       Y <- t(Y)
     }
 
     if (is.null(lambda)){

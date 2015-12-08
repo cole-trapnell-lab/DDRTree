@@ -3,6 +3,7 @@ library('R.matlab')
 library(igraph)
 library(ggplot2)
 library(irlba)
+library(DDRTree)
 context("DDRTRee")
 
 #note that dim (the inherent dimension the data reduced to and where the tree is constructed) can be changed (currently it is 2)
@@ -15,6 +16,8 @@ test_that("DDRTRee() perform the DDRTree construction", {
     ko_exprs <-  readMat(file.path(extPath, "ko_exprs.mat"))
 
     #ko data:
+    ko_exprs <- readMat('/Users/xqiu/Dropbox (Personal)/bifurcation_path/simplePPT/data/ko_exprs.mat')
+
     ko_exprs <- as.matrix(ko_exprs$ko.exprs)
     storage.mode(ko_exprs) <- 'numeric'
     X <- ko_exprs
@@ -24,9 +27,12 @@ test_that("DDRTRee() perform the DDRTree construction", {
 
     #pca_res <- pca_projection(X[, ] %*% t(X [, ]), 2)
     #sqdist_res <- sqdist(X, X)
-    params <- list(maxIter = 20, eps = 1e-3, dim = 2, lambda = 2435, sigma = 1e-3, gamma = 10)
-    system.time(DDRTree_res <- DDRTree_cpp(X = X, params = params, T))
+    #params <- list(maxIter = 20, eps = 1e-3, dim = 2, lambda = 2435, sigma = 1e-3, gamma = 10)
+    system.time(DDRTree_res <- DDRTree_cpp(X = X,  verbose = T))
     qplot(x = DDRTree_res$Y[1, ], y = DDRTree_res$Y[2, ])
+
+    system.time(DDRTree_res_R <- DDRTree_R(X = X, params = params, T))
+    qplot(x = DDRTree_res_R$Y[1, ], y = DDRTree_res_R$Y[2, ])
 
     #ko tree:
     ko_DDRTree_res <- DDRTree_res
@@ -34,6 +40,9 @@ test_that("DDRTRee() perform the DDRTree construction", {
     #lung data:
     extPath <- file.path(baseLoc, "extdata")
     lung_exprs <- readMat(file.path(extPath, "lung_exprs_mat.mat"))
+
+    lung_exprs <- readMat('/Users/xqiu/Dropbox (Personal)/bifurcation_path/simplePPT/data/lung_exprs_mat.mat')
+
     lung_exprs <- as.matrix(lung_exprs$x)
     storage.mode(lung_exprs) <- 'numeric'
     X <- lung_exprs
@@ -44,8 +53,11 @@ test_that("DDRTRee() perform the DDRTree construction", {
     pca_res <- pca_projection(X[, ] %*% t(X [, ]), 2)
     sqdist_res <- sqdist(X, X)
     params <- list(maxIter = 20, eps = 1e-3, dim = 2, lambda = 2435, sigma = 1e-3, gamma = 10)
-    DDRTree_res <- DDRTree_R(X = X, params = params, T)
+    system.time(DDRTree_res <- DDRTree_cpp(X = X,  lambda = 2435, verbose = T))
     qplot(x = DDRTree_res$Y[1, ], y = DDRTree_res$Y[2, ])
+
+    system.time(DDRTree_res_R <- DDRTree_R(X = X, params = params, T))
+    qplot(x = DDRTree_res_R$Y[1, ], y = DDRTree_res_R$Y[2, ])
 
 #     #lung tree:
 #     lung_DDRTree_res <- DDRTree_res
@@ -81,7 +93,7 @@ test_that("DDRTRee() perform the DDRTree construction", {
     #pca_res <- pca_projection(X[, ] %*% t(X [, ]), 2)
     #sqdist_res <- sqdist(X, X)
     #params <- list(maxIter = 20, eps = 1e-3, dim = 2, lambda = 5 * ncol(X), sigma = 1e-3, gamma = 10)
-    system.time(DDRTree_res <- DDRTree_cpp(X))
+    system.time(DDRTree_res <- DDRTree_cpp(X, verbose = T))
     qplot(x = DDRTree_res$Y[1, ], y = DDRTree_res$Y[2, ])
 #
 #     #cell tree:
