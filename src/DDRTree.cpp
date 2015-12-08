@@ -298,6 +298,11 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
 
         // TODO: replace this with IRLBA
         //JacobiSVD<MatrixXd> svd(X_in - W_out * Z_out, ComputeThinU | ComputeThinV);
+        if (verbose){
+            Rcpp::Rcout << "   X : (" << X_in.rows() << " x " << X_in.cols() << ")" << std::endl;
+            Rcpp::Rcout << "   W : (" << W_out.rows() << " x " << W_out.cols() << ")" << std::endl;
+            Rcpp::Rcout << "   Z : (" << Z_out.rows() << " x " << Z_out.cols() << ")" << std::endl;
+        }
         double major_eigen_value = as<double>(get_major_eigenvalue(X_in - W_out * Z_out,dimensions));
         //const int X_n = W_R.nrow(), X_p = W_R.ncol();
         //Map<MatrixXd> W(W_R.begin(), X_n, X_p);
@@ -308,6 +313,11 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
         double obj2 = major_eigen_value;
         //Rcpp::Rcout << "norm = " << obj2 << std::endl;
         obj2 = obj2 * obj2;
+
+        if (verbose){
+            Rcpp::Rcout << "   L : (" << L.rows() << " x " << L.cols() << ")" << std::endl;
+        }
+
         obj2 = obj2 + lambda * (Y_out * L * Y_out.transpose()).diagonal().sum() + gamma * obj1;
         //Rcpp::Rcout << obj2 << std::endl;
         //Rcpp::Rcout << "obj2 = " << obj2 << std::endl;
