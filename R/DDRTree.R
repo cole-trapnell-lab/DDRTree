@@ -204,7 +204,14 @@ DDRTree_R <- function(X, params, verbose = F) {
 #' @export
 #' gamma   : regularization parameter for k-means
 #'
-DDRTree_cpp <- function(X, params, verbose = F) {
+DDRTree_cpp <- function(X,
+                        dimensions = 2,
+                        maxIter = 20,
+                        sigma = 1e-3,
+                        lambda = NULL,
+                        gamma = 10,
+                        tol = 1e-3,
+                        verbose = F) {
 
     D <- nrow(X)
     N <- ncol(X)
@@ -224,7 +231,10 @@ DDRTree_cpp <- function(X, params, verbose = F) {
         Y <- t(Y)
     }
 
-    ddrtree_res <- DDRTree_reduce_dim(X, Z, Y, W,  params$dim, params$maxIter, K,  params$sigma,  params$lambda,  params$gamma, params$eps, params$verbose)
+    if (is.null(lambda)){
+        lambda = 5 * ncol(X)
+    }
+    ddrtree_res <- DDRTree_reduce_dim(X, Z, Y, W, dimensions, maxIter, K,  sigma,  lambda,  gamma, tol, verbose)
 
     return(list(W = ddrtree_res$W, Z = ddrtree_res$Z, stree = ddrtree_res$stree, Y = ddrtree_res$Y, history = NULL))
 }
