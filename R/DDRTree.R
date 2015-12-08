@@ -217,7 +217,7 @@ DDRTree_cpp <- function(X,
     N <- ncol(X)
 
     #initialization
-    W <- pca_projection_R(X %*% t(X), params$dim)
+    W <- pca_projection_R(X %*% t(X), dimensions)
     Z <- t(W) %*% X
 
     if(!('ncenter' %in% names(params))) {

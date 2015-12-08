@@ -9,6 +9,8 @@
 using namespace Rcpp;
 using namespace Eigen;
 
+typedef Eigen::SparseMatrix<double> SpMat;
+
 // This is a simple example of exporting a C++ function to R. You can
 // source this function into an R session using the Rcpp::sourceCpp
 // function (or via the Source button on the editor toolbar). Learn
@@ -111,13 +113,14 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
                             double gamma,
                             double eps,
                             bool verbose,
-                            MatrixXd& Y_out){
+                            MatrixXd& Y_out,
+                            SpMat& stree){
 
     Y_out = Y_in;
     MatrixXd W_out = W_in;
     MatrixXd Z_out = Z_in;
 
-    typedef Eigen::SparseMatrix<double> SpMat;
+    int N_cells = X_in.cols();
 
     typedef boost::property<boost::edge_weight_t, double> EdgeWeightProperty;
     typedef boost::adjacency_matrix<
@@ -417,6 +420,26 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
 
         //Rcpp::Rcout << Y_out << std::endl;
     }
+
+    if (verbose)
+        Rcpp::Rcout << "Clearing MST sparse matrix" << std::endl;
+    stree.setZero();
+
+    if (verbose){
+        Rcpp::Rcout << "Setting up MST sparse matrix with " << old_spanning_tree.size() << std::endl;
+    }
+    typedef Eigen::Triplet<double> T;
+    std::vector<T> tripletList;
+    tripletList.reserve(old_spanning_tree.size());
+    // Send back the weighted MST as a sparse matrix
+    for (std::vector < Edge >::iterator ei = old_spanning_tree.begin();
+         ei != old_spanning_tree.end(); ++ei)
+    {
+        //stree.insert(source(*ei, g), target(*ei, g)) = 1;//distsqMU(source(*ei, g), target(*ei, g));
+        tripletList.push_back(T( source(*ei, g), target(*ei, g), distsqMU(source(*ei, g), target(*ei, g))));
+    }
+    stree = SpMat(N_cells, N_cells);
+    stree.setFromTriplets(tripletList.begin(), tripletList.end());
 }
 
 
@@ -461,8 +484,9 @@ Rcpp::List DDRTree_reduce_dim(SEXP R_X,
     bool verbose = as<bool>(R_verbose);
 
     MatrixXd Y_res;
+    SpMat stree_res;
 
-    DDRTree_reduce_dim_cpp(X, Z, Y, W, dimensions, maxiter, num_clusters, sigma, lambda, gamma, eps, verbose, Y_res);
+    DDRTree_reduce_dim_cpp(X, Z, Y, W, dimensions, maxiter, num_clusters, sigma, lambda, gamma, eps, verbose, Y_res, stree_res);
 
     NumericMatrix X_res;
     NumericMatrix Z_res;
@@ -470,7 +494,7 @@ Rcpp::List DDRTree_reduce_dim(SEXP R_X,
 
     return Rcpp::List::create(Rcpp::Named("W") = X,
                               Rcpp::Named("Z") = Z,
-                              Rcpp::Named("stree") = stree,
+                              Rcpp::Named("stree") = wrap(stree_res),
                               Rcpp::Named("Y") = wrap(Y_res));
 }
 
