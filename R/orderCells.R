@@ -21,18 +21,18 @@
 # }
 #res <- assign_pseudotime_helper(res, dist_matrix, 0.0, res$root)
 
-curr_state <- 1
-
-stree <- DDRTree_res$stree +  t(DDRTree_res$stree) != 0
-stree <- as.matrix(stree)
-stree[stree = T] <- 1
-stree[stree = 0] <- 0
-
-#stree[upper.tri(stree)] <- 0
-dimnames(stree) <- list(as.character(1:487), as.character(1:487))
-stree_g <- graph.adjacency(stree, mode = "directed", diag = F, weighted = F)
-
-res <- list(subtree = stree_g, root = "358")
+# curr_state <- 1
+#
+# stree <- DDRTree_res$stree +  t(DDRTree_res$stree) != 0
+# stree <- as.matrix(stree)
+# stree[stree = T] <- 1
+# stree[stree = 0] <- 0
+#
+# #stree[upper.tri(stree)] <- 0
+# dimnames(stree) <- list(as.character(1:487), as.character(1:487))
+# stree_g <- graph.adjacency(stree, mode = "directed", diag = F, weighted = F)
+#
+# res <- list(subtree = stree_g, root = "358")
 
 assign_cell_state_helper <- function(ordering_tree_res, curr_cell)
 {
@@ -58,7 +58,7 @@ assign_cell_state_helper <- function(ordering_tree_res, curr_cell)
     return (ordering_tree_res)
 }
 
-res <- assign_cell_state_helper(res, res$root)
+#res <- assign_cell_state_helper(res, res$root)
 
 
 

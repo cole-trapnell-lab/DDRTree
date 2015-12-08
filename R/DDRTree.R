@@ -61,14 +61,6 @@ sqdist_R <- function(a, b) {
     dist <- abs(aa_repmat + bb_repmat - 2 * ab)
 }
 
-# X : DxN data matrix
-# params.
-#       maxIter : maximum iterations
-#       eps     : relative objective difference
-#       dim     : reduced dimension
-#       lambda  : regularization parameter for inverse graph embedding
-#       sigma   : bandwidth parameter
-#       gamma   : regularization parameter for k-means
 #' Perform DDRTree construction
 #' @param X a matrix with D x N dimension which is needed to perform DDRTree construction
 #' @param params a list with the following parameters:
@@ -77,7 +69,7 @@ sqdist_R <- function(a, b) {
 #' dim     : reduced dimension
 #' lambda  : regularization parameter for inverse graph embedding
 #' sigma   : bandwidth parameter
-#' gamma   : regularization parameter for k-means
+#' param.gamma   : regularization parameter for k-means (the prefix of 'param' is used to avoid name collision with param)
 #' @return a list with W, Z, stree, Y, history
 #' @export
 #' gamma   : regularization parameter for k-means
@@ -87,7 +79,7 @@ DDRTree_R <- function(X,  dimensions = 2,
                       sigma = 1e-3,
                       lambda = NULL,
                       ncenter = NULL,
-                      gamma = 10,
+                      param.gamma = 10,
                       tol = 1e-3,
                       verbose = F) {
 
@@ -108,6 +100,9 @@ DDRTree_R <- function(X,  dimensions = 2,
         kmean_res <- kmeans(t(Z), K)
         Y <- kmean_res$centers
         Y <- t(Y)
+    }
+    if (is.null(lambda)){
+        lambda = 5 * ncol(X)
     }
 
     #main loop:
@@ -149,13 +144,13 @@ DDRTree_R <- function(X,  dimensions = 2,
         #print(tmp_R)
         R <- tmp_R / matrix(rep(rowSums(tmp_R), times = K), byrow = F, ncol = K)
         #print(R)
-        Gamma <- matrix(rep(0, ncol(R) ^ 2), nrow = ncol(R))
-        diag(Gamma) <- colSums(R)
+        Gamma_mat <- matrix(rep(0, ncol(R) ^ 2), nrow = ncol(R))
+        diag(Gamma_mat) <- colSums(R)
 
         #termination condition
         obj1 <- - sigma * sum(log(rowSums(exp(-tmp_distZY / sigma)))
                                      - min_dist[, 1] /sigma)
-        objs[iter] <- (base::norm(X - W %*% Z, '2'))^2 + lambda * sum(diag(Y %*% L %*% t(Y))) + gamma * obj1 #sum(diag(A))
+        objs[iter] <- (base::norm(X - W %*% Z, '2'))^2 + lambda * sum(diag(Y %*% L %*% t(Y))) + param.gamma * obj1 #sum(diag(A))
 
         if(verbose)
             message('iter = ', iter, ' ', objs[iter])
@@ -174,13 +169,13 @@ DDRTree_R <- function(X,  dimensions = 2,
         }
 
         #compute low dimension projection matrix
-        tmp <- t(solve((((gamma + 1) / gamma) * ((lambda / gamma) * L + Gamma) - t(R) %*% R), t(R)))
-        Q <- 1 / (gamma + 1) * (diag(1, N) + tmp %*% t(R))
+        tmp <- t(solve((((param.gamma + 1) / param.gamma) * ((lambda / param.gamma) * L + Gamma_mat) - t(R) %*% R), t(R)))
+        Q <- 1 / (param.gamma + 1) * (diag(1, N) + tmp %*% t(R))
         C <- X %*% Q
         tmp1 <- C %*% t(X)
         W <- pca_projection_R((tmp1 + t(tmp1)) / 2, dimensions)
         Z <- t(W) %*% C
-        Y <- t(solve((lambda / gamma * L + Gamma), t(Z %*% R)))
+        Y <- t(solve((lambda / param.gamma * L + Gamma_mat), t(Z %*% R)))
         #print (Y)
     }
 
@@ -189,16 +184,6 @@ DDRTree_R <- function(X,  dimensions = 2,
     return(list(W = W, Z = Z, stree = stree_ori, Y = Y, history = history))
 }
 
-
-
-# X : DxN data matrix
-# params.
-#       maxIter : maximum iterations
-#       eps     : relative objective difference
-#       dim     : reduced dimension
-#       lambda  : regularization parameter for inverse graph embedding
-#       sigma   : bandwidth parameter
-#       gamma   : regularization parameter for k-means
 #' Perform DDRTree construction
 #' @param X a matrix with D x N dimension which is needed to perform DDRTree construction
 #' @param params a list with the following parameters:
@@ -207,7 +192,7 @@ DDRTree_R <- function(X,  dimensions = 2,
 #' dim     : reduced dimension
 #' lambda  : regularization parameter for inverse graph embedding
 #' sigma   : bandwidth parameter
-#' gamma   : regularization parameter for k-means
+#' param.gamma   : regularization parameter for k-means (the prefix of 'param' is used to avoid name collision with param)
 #' @return a list with W, Z, stree, Y, history
 #' @export
 #' gamma   : regularization parameter for k-means

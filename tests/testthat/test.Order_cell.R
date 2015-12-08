@@ -1,5 +1,5 @@
 #compare the results with the original ordering and pseudotime assignment
-reduceDimension <- function (cds, max_components = 2, use_irlba = TRUE, pseudo_expr = 1,
+reduceDimension_DDRTree <- function (cds, use_DDRTree = FALSE, max_components = 2, use_irlba = TRUE, pseudo_expr = 1,
           batch = NULL, batch2 = NULL, covariates = NULL, use_vst = FALSE,
           verbose = FALSE, ...)
 {
@@ -9,7 +9,7 @@ reduceDimension <- function (cds, max_components = 2, use_irlba = TRUE, pseudo_e
         pseudo_expr = 0
     }
     if (use_vst == FALSE && cds@expressionFamily@vfamily == "negbinomial") {
-        checkSizeFactors(cds)
+        # checkSizeFactors(cds)
         size_factors <- sizeFactors(cds)
         FM <- t(t(FM)/size_factors)
     }
@@ -52,39 +52,68 @@ reduceDimension <- function (cds, max_components = 2, use_irlba = TRUE, pseudo_e
             }
         }
     }
-    if (verbose)
+    if (verbose & use_DDRTree == F)
         message("Reducing to independent components")
+    else if (verbose & use_DDRTree == T)
+        message("Apply DDRTree to reduce dimension and build principal tree")
+
+    if(use_DDRTree == F) {
     init_ICA <- ica_helper(t(FM), max_components, use_irlba = use_irlba,
                            ...)
-    x_pca <- t(t(FM) %*% init_ICA$K)
-    W <- t(init_ICA$W)
-    weights <- W
-    A <- t(solve(weights) %*% t(init_ICA$K))
-    colnames(A) <- colnames(weights)
-    rownames(A) <- rownames(FM)
-    S <- weights %*% x_pca
-    rownames(S) <- colnames(weights)
-    colnames(S) <- colnames(FM)
-    reducedDimW(cds) <- W
-    reducedDimA(cds) <- A
-    reducedDimS(cds) <- S
-    reducedDimK(cds) <- init_ICA$K
+        x_pca <- t(t(FM) %*% init_ICA$K)
+        W <- t(init_ICA$W)
+        weights <- W
+        A <- t(solve(weights) %*% t(init_ICA$K))
+        colnames(A) <- colnames(weights)
+        rownames(A) <- rownames(FM)
+        S <- weights %*% x_pca
+        rownames(S) <- colnames(weights)
+        colnames(S) <- colnames(FM)
+        reducedDimW(cds) <- W
+        reducedDimA(cds) <- A
+        reducedDimS(cds) <- S
+        reducedDimK(cds) <- init_ICA$K
+    }
+    else {
+        X <- apply(FM, 1, function(x) x - mean(x))
+        X <- t(X)
+
+        DDRTree_res <- DDRTree::DDRTree_R(X, params, verbose = T)
+        W <- DDRTree_res$W
+        Z <- DDRTree_res$Z
+        Y <- DDRTree_res$Y
+        stree <- DDRTree_res$stree
+
+        reducedDimW(cds) <- W
+        reducedDimA(cds) <- Z
+        reducedDimS(cds) <- Y
+        reducedDimK(cds) <- stree
+    }
+
     cds
 }
 
-orderCells <- function (cds, num_paths = 1, reverse = FALSE, root_cell = NULL,
+load('/Users/xqiu/Dropbox (Personal)/Quake/project_package/DevTree/redo-analysis/submission/Shalek_abs_subset_ko_LPS')
+Shalek_abs_subset_ko_LPS_DDRTree <- reduceDimension_DDRTree(Shalek_abs_subset_ko_LPS, use_DDRTree = T)
+qplot(x = reducedDimS(Shalek_abs_subset_ko_LPS_DDRTree)[1, ], y = reducedDimS(Shalek_abs_subset_ko_LPS_DDRTree)[2, ])
+
+orderCells_DDRTree <- function (cds, dp_mst = NULL, dp, num_paths = 1, reverse = FALSE, root_cell = NULL,
           scale_pseudotime = F)
 {
     adjusted_S <- t(cds@reducedDimS)
     dp <- as.matrix(dist(adjusted_S))
-    cellPairwiseDistances(cds) <- as.matrix(dist(adjusted_S))
-    gp <- graph.adjacency(dp, mode = "undirected", weighted = TRUE)
-    dp_mst <- minimum.spanning.tree(gp)
+
+    if(is.null(dp_mst)) {
+        cellPairwiseDistances(cds) <- as.matrix(dist(adjusted_S))
+        gp <- graph.adjacency(dp, mode = "undirected", weighted = TRUE)
+        dp_mst <- minimum.spanning.tree(gp)
+    }
     minSpanningTree(cds) <- dp_mst
+
     next_node <<- 0
     res <- pq_helper(dp_mst, use_weights = FALSE, root_node = root_cell)
     cc_ordering <- extract_good_branched_ordering(res$subtree,
-                                                  res$root, cellPairwiseDistances(cds), num_paths, reverse)
+                                                  res$root, dp, num_paths, reverse)
     row.names(cc_ordering) <- cc_ordering$sample_name
     pData(cds)$Pseudotime <- cc_ordering[row.names(pData(cds)),
                                          ]$pseudo_time
@@ -94,7 +123,47 @@ orderCells <- function (cds, num_paths = 1, reverse = FALSE, root_cell = NULL,
         cds <- scale_pseudotime(cds)
     }
     cds
+#     vertex_name <- as.character(V(stree_g))
+#     Pseudotime <- cc_ordering[vertex_name, ]$pseudo_time
+#     State <- cc_ordering[vertex_name, ]$cell_state
+#     Parent <- cc_ordering[vertex_name, ]$parent
+#
+#     return(list(Pseudotime = Pseudotime, State = State, Parent = Parent))
 }
+
+#stree <- reducedDimK(Shalek_abs_subset_ko_LPS_DDRTree) +  t(reducedDimK(Shalek_abs_subset_ko_LPS_DDRTree)) != 0
+stree <- reducedDimK(Shalek_abs_subset_ko_LPS_DDRTree)
+stree <- as.matrix(stree)
+stree[stree > 0] <- 1
+stree[stree <= 0] <- 0
+
+#stree[upper.tri(stree)] <- 0
+dimnames(stree) <- list(as.character(1:487), as.character(1:487))
+stree_g <- graph.adjacency(stree, mode = "undirected", diag = F, weighted = NULL)
+# orderCell_res <- orderCells_DDRTree(stree_g, dp = as.matrix(dist(t(DDRTree_res$Y))), num_paths = 2, root_cell = '358')
+# qplot(DDRTree_res$Y[1, ], DDRTree_res$Y[2, ], color = orderCell_res$State, size = orderCell_res$Pseudotime)
+
+orderCell_res <- orderCells_DDRTree(Shalek_abs_subset_ko_LPS_DDRTree, dp_mst = stree_g, num_paths = 2, root_cell = '358')
+orderCell_res <- orderCells_DDRTree(Shalek_abs_subset_ko_LPS_DDRTree, dp_mst = NULL, num_paths = 2, root_cell = '358')
+qplot(reducedDimS(Shalek_abs_subset_ko_LPS_DDRTree)[1, ], reducedDimS(Shalek_abs_subset_ko_LPS_DDRTree)[2, ], color = pData(Shalek_abs_subset_ko_LPS_DDRTree)$State, size = pData(Shalek_abs_subset_ko_LPS_DDRTree)$Pseudotime)
+
+#358
+plot_DDRTree <- function(DDRTree_res, num_paths, root_cell) {
+    stree <- DDRTree_res$stree +  t(DDRTree_res$stree) != 0
+    stree <- as.matrix(stree)
+    stree[stree == T] <- 1
+    stree[stree == 0] <- 0
+
+    #stree[upper.tri(stree)] <- 0
+    dimnames(stree) <- list(as.character(1:nrow(stree)), as.character(1:nrow(stree)))
+    stree_g <- graph.adjacency(stree, mode = "undirected", diag = F, weighted = NULL)
+    dp = as.matrix(dist(t(DDRTree_res$Y)))
+
+    orderCell_res <- orderCells_DDRTree(stree_g, dp = dp, num_paths = num_paths, root_cell = root_cell)
+    qplot(DDRTree_res$Y[1, ], DDRTree_res$Y[2, ], color = orderCell_res$State, size = orderCell_res$Pseudotime)
+}
+
+plot_DDRTree(DDRTree_res, 2, '358')
 
 plot_spanning_tree <- function (cds, x = 1, y = 2, color_by = "State", show_tree = TRUE,
           show_backbone = TRUE, backbone_color = "black", markers = NULL,
