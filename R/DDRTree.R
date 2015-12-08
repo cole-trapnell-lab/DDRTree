@@ -23,15 +23,15 @@ pca_projection_R <- function(C, L) {
 
     U <- eigen_res$u
     V <- eigen_res$v
-#     eig_sort <- sort(V, decreasing = T, index.return = T)
-#     eig_idx <- eig_sort$ix
-#
-#     W <- U[, eig_idx[1:L]]
+    #     eig_sort <- sort(V, decreasing = T, index.return = T)
+    #     eig_idx <- eig_sort$ix
+    #
+    #     W <- U[, eig_idx[1:L]]
 }
 
 get_major_eigenvalue <- function(C, L) {
     if (L >= min(dim(C))){
-        return (norm(C, '2')^2);
+        return (base::norm(C, '2')^2);
     }else{
         #message("using irlba")
         eigen_res <- irlba(C, nv = L)
@@ -83,22 +83,22 @@ sqdist_R <- function(a, b) {
 #' gamma   : regularization parameter for k-means
 #'
 DDRTree_R <- function(X,  dimensions = 2,
-                        maxIter = 20,
-                        sigma = 1e-3,
-                        lambda = NULL,
-                        ncenter = NULL,
-                        gamma = 10,
-                        tol = 1e-3,
-                        verbose = F, verbose = F) {
+                      maxIter = 20,
+                      sigma = 1e-3,
+                      lambda = NULL,
+                      ncenter = NULL,
+                      gamma = 10,
+                      tol = 1e-3,
+                      verbose = F) {
 
     D <- nrow(X)
     N <- ncol(X)
 
     #initialization
-    W <- pca_projection_R(X %*% t(X), dim)
+    W <- pca_projection_R(X %*% t(X), dimensions)
     Z <- t(W) %*% X
 
-    if(!('ncenter' %in% names(params))) {
+    if(is.null(ncenter)) {
         K <- N
         Y <- Z[, 1:K]
     }
@@ -127,6 +127,7 @@ DDRTree_R <- function(X,  dimensions = 2,
         g <- graph.adjacency(distsqMU, mode = 'lower', diag = T, weighted = T)
         g_mst <- mst(g)
         stree <- get.adjacency(g_mst, attr = 'weight', type = 'lower')
+        stree_ori <- stree
 
         #convert to matrix:
         stree <- as.matrix(stree)
@@ -154,7 +155,7 @@ DDRTree_R <- function(X,  dimensions = 2,
         #termination condition
         obj1 <- - sigma * sum(log(rowSums(exp(-tmp_distZY / sigma)))
                                      - min_dist[, 1] /sigma)
-        objs[iter] <- (norm(X - W %*% Z, '2'))^2 + lambda * sum(diag(Y %*% L %*% t(Y))) + gamma * obj1 #sum(diag(A))
+        objs[iter] <- (base::norm(X - W %*% Z, '2'))^2 + lambda * sum(diag(Y %*% L %*% t(Y))) + gamma * obj1 #sum(diag(A))
 
         if(verbose)
             message('iter = ', iter, ' ', objs[iter])
@@ -166,7 +167,7 @@ DDRTree_R <- function(X,  dimensions = 2,
         history$R[iter] <- R
 
         if(iter > 1) {
-            if(abs(objs[iter] - objs[iter - 1]) / abs(objs[iter - 1]) < eps) {
+            if(abs(objs[iter] - objs[iter - 1]) / abs(objs[iter - 1]) < tol) {
                 break
             }
 
@@ -177,7 +178,7 @@ DDRTree_R <- function(X,  dimensions = 2,
         Q <- 1 / (gamma + 1) * (diag(1, N) + tmp %*% t(R))
         C <- X %*% Q
         tmp1 <- C %*% t(X)
-        W <- pca_projection_R((tmp1 + t(tmp1)) / 2, dim)
+        W <- pca_projection_R((tmp1 + t(tmp1)) / 2, dimensions)
         Z <- t(W) %*% C
         Y <- t(solve((lambda / gamma * L + Gamma), t(Z %*% R)))
         #print (Y)
@@ -185,7 +186,7 @@ DDRTree_R <- function(X,  dimensions = 2,
 
     history$objs <- objs
 
-    return(list(W = W, Z = Z, stree = stree, Y = Y, history = history))
+    return(list(W = W, Z = Z, stree = stree_ori, Y = Y, history = history))
 }
 
 
@@ -228,15 +229,15 @@ DDRTree_cpp <- function(X,
     W <- pca_projection_R(X %*% t(X), dimensions)
     Z <- t(W) %*% X
 
-   if(is.null(ncenter)) {
+    if(is.null(ncenter)) {
         K <- N
         Y <- Z[, 1:K]
     }
     else {
-       K <- ncenter
-       kmean_res <- kmeans(t(Z), K)
-       Y <- kmean_res$centers
-       Y <- t(Y)
+        K <- ncenter
+        kmean_res <- kmeans(t(Z), K)
+        Y <- kmean_res$centers
+        Y <- t(Y)
     }
 
     if (is.null(lambda)){
@@ -246,7 +247,3 @@ DDRTree_cpp <- function(X,
 
     return(list(W = ddrtree_res$W, Z = ddrtree_res$Z, stree = ddrtree_res$stree, Y = ddrtree_res$Y, history = NULL))
 }
-
-
-
-

@@ -31,7 +31,7 @@ test_that("DDRTRee() perform the DDRTree construction", {
     system.time(DDRTree_res <- DDRTree_cpp(X = X,  verbose = T))
     qplot(x = DDRTree_res$Y[1, ], y = DDRTree_res$Y[2, ])
 
-    system.time(DDRTree_res_R <- DDRTree_R(X = X, params = params, T))
+    system.time(DDRTree_res_R <- DDRTree_R(X = X,  lambda  = 2435, verbose =  T))
     qplot(x = DDRTree_res_R$Y[1, ], y = DDRTree_res_R$Y[2, ])
 
     #ko tree:
