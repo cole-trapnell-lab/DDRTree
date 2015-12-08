@@ -447,7 +447,7 @@ Rcpp::List DDRTree_reduce_dim(SEXP R_X,
 
     NumericMatrix Rcpp_W(R_W);
     const int W_n = Rcpp_W.nrow(), W_p = Rcpp_W.ncol();
-    Map<MatrixXd> W(Rcpp_W.begin(), Y_n, W_p);
+    Map<MatrixXd> W(Rcpp_W.begin(), W_n, W_p);
 
     int dimensions = as<int>(R_dimensions);
     int maxiter = as<int>(R_maxiter);
