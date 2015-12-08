@@ -336,17 +336,25 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
         //Rcpp::Rcout << tmp << std::endl;
         //tmp = tmp.llt().solve(R.transpose()).transpose();
 
+        if (verbose)
+            Rcpp::Rcout << "... stage 1" << std::endl;
         tmp = ((Gamma + (L * (lambda / gamma))) * ((gamma + 1.0) / gamma)).sparseView();
         //Rcpp::Rcout << tmp << std::endl;
+        if (verbose)
+            Rcpp::Rcout << "... stage 2" << std::endl;
         tmp = tmp - (R.transpose().sparseView() * R.sparseView());
         //tmp = tmp_dense.sparseView();
 
+        if (verbose)
+            Rcpp::Rcout << "Pre-computing LLT analysis" << std::endl;
         SimplicialLLT <SparseMatrix<double> > solver;
         solver.compute(tmp);
         if(solver.info()!=Success) {
             // decomposition failed
             Rcpp::Rcout << "Error!" << std::endl;
         }
+        if (verbose)
+            Rcpp::Rcout << "Computing LLT" << std::endl;
         tmp_dense = solver.solve(R.transpose()).transpose();
         if(solver.info()!=Success) {
             // solving failed
