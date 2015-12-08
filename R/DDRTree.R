@@ -203,7 +203,7 @@ DDRTree_cpp <- function(X,
                         sigma = 1e-3,
                         lambda = NULL,
                         ncenter = NULL,
-                        gamma = 10,
+                        param.gamma = 10,
                         tol = 1e-3,
                         verbose = F) {
 
