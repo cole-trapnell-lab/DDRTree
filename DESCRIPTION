@@ -4,7 +4,8 @@ Title: Learning principal trees
 Version: 0.1
 Date: 2015-12-06
 Author: Xiaojie Qiu and Cole Trapnell
-Imports: Rcpp, irlba
+Depends: irlba
+Imports: Rcpp
 LinkingTo: Rcpp, RcppEigen, BH, igraph
 Maintainer: Xiaojie Qiu <xqiu@uw.edu>
 Description: Implements the DDRTree algorithm from "Dimensionality Reduction via Graph Structure Learning", by Mao et al (2015)
