@@ -114,11 +114,12 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
                             double eps,
                             bool verbose,
                             MatrixXd& Y_out,
-                            SpMat& stree){
+                            SpMat& stree,
+                            MatrixXd& Z_out){
 
     Y_out = Y_in;
     MatrixXd W_out = W_in;
-    MatrixXd Z_out = Z_in;
+    Z_out = Z_in;
 
     int N_cells = X_in.cols();
 
@@ -394,8 +395,11 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
         tmp1 =  C * X_in.transpose();
         //Rcpp::Rcout << tmp1 << std::endl;
 
-        if (verbose)
+        if (verbose){
             Rcpp::Rcout << "Computing W" << std::endl;
+            //Rcpp::Rcout << (tmp1 + tmp1.transpose()) / 2 << std::endl;
+        }
+
         //W <- pca_projection_R((tmp1 + t(tmp1)) / 2, params$dim)
 
         NumericMatrix W_R = pca_projection_R((tmp1 + tmp1.transpose()) / 2,dimensions);
@@ -437,6 +441,7 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
     {
         //stree.insert(source(*ei, g), target(*ei, g)) = 1;//distsqMU(source(*ei, g), target(*ei, g));
         tripletList.push_back(T( source(*ei, g), target(*ei, g), distsqMU(source(*ei, g), target(*ei, g))));
+        tripletList.push_back(T( target(*ei, g), source(*ei, g), distsqMU(source(*ei, g), target(*ei, g))));
     }
     stree = SpMat(N_cells, N_cells);
     stree.setFromTriplets(tripletList.begin(), tripletList.end());
@@ -456,44 +461,87 @@ Rcpp::List DDRTree_reduce_dim(SEXP R_X,
                               SEXP R_gamma,
                               SEXP R_eps,
                               SEXP R_verbose){
+
+    //Rcpp::Rcout << "Mapping verbose" << std::endl;
+
+    bool verbose = as<bool>(R_verbose);
+
+    if (verbose)
+        Rcpp::Rcout << "Mapping X" << std::endl;
+
     NumericMatrix Rcpp_X(R_X);
     const int X_n = Rcpp_X.nrow(), X_p = Rcpp_X.ncol();
     Map<MatrixXd> X(Rcpp_X.begin(), X_n, X_p);
+
+    if (verbose)
+        Rcpp::Rcout << "Mapping Z" << std::endl;
 
     NumericMatrix Rcpp_Z(R_Z);
     const int Z_n = Rcpp_Z.nrow(), Z_p = Rcpp_Z.ncol();
     Map<MatrixXd> Z(Rcpp_Z.begin(), Z_n, Z_p);
 
+    if (verbose)
+        Rcpp::Rcout << "Mapping Y" << std::endl;
+
     NumericMatrix Rcpp_Y(R_Y);
     const int Y_n = Rcpp_Y.nrow(), Y_p = Rcpp_Y.ncol();
     Map<MatrixXd> Y(Rcpp_Y.begin(), Y_n, Y_p);
+
+    if (verbose)
+        Rcpp::Rcout << "Mapping W" << std::endl;
 
     NumericMatrix Rcpp_W(R_W);
     const int W_n = Rcpp_W.nrow(), W_p = Rcpp_W.ncol();
     Map<MatrixXd> W(Rcpp_W.begin(), W_n, W_p);
 
+    if (verbose)
+        Rcpp::Rcout << "Mapping dimensions" << std::endl;
+
     int dimensions = as<int>(R_dimensions);
+
+    if (verbose)
+        Rcpp::Rcout << "Mapping maxIter" << std::endl;
+
     int maxiter = as<int>(R_maxiter);
+
+    if (verbose)
+        Rcpp::Rcout << "Mapping num_clusters" << std::endl;
+
     int num_clusters = as<int>(R_num_clusters);
 
+    if (verbose)
+        Rcpp::Rcout << "Mapping sigma" << std::endl;
+
     double sigma = as<double>(R_sigma);
+
+    if (verbose)
+        Rcpp::Rcout << "Mapping lambda" << std::endl;
+
     double lambda = as<double>(R_lambda);
+
+    if (verbose)
+        Rcpp::Rcout << "Mapping gamma" << std::endl;
+
     double gamma = as<double>(R_gamma);
+
+    if (verbose)
+        Rcpp::Rcout << "Mapping eps" << std::endl;
+
     double eps = as<double>(R_eps);
 
-    bool verbose = as<bool>(R_verbose);
+
 
     MatrixXd Y_res;
     SpMat stree_res;
+    MatrixXd Z_res;
 
-    DDRTree_reduce_dim_cpp(X, Z, Y, W, dimensions, maxiter, num_clusters, sigma, lambda, gamma, eps, verbose, Y_res, stree_res);
+    DDRTree_reduce_dim_cpp(X, Z, Y, W, dimensions, maxiter, num_clusters, sigma, lambda, gamma, eps, verbose, Y_res, stree_res, Z_res);
 
     NumericMatrix X_res;
-    NumericMatrix Z_res;
     NumericMatrix stree;
 
     return Rcpp::List::create(Rcpp::Named("W") = X,
-                              Rcpp::Named("Z") = Z,
+                              Rcpp::Named("Z") = Z_res,
                               Rcpp::Named("stree") = wrap(stree_res),
                               Rcpp::Named("Y") = wrap(Y_res));
 }

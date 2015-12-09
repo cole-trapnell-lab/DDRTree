@@ -19,14 +19,26 @@
 
 pca_projection_R <- function(C, L) {
     #message("using irlba")
-    eigen_res <- irlba(C, nv = L)
+    if (L >= min(dim(C))){
+            eigen_res <- eigen(C)
 
-    U <- eigen_res$u
-    V <- eigen_res$v
-    #     eig_sort <- sort(V, decreasing = T, index.return = T)
-    #     eig_idx <- eig_sort$ix
-    #
-    #     W <- U[, eig_idx[1:L]]
+            U <- eigen_res$vector
+            V <- eigen_res$value
+            eig_sort <- sort(V, decreasing = T, index.return = T)
+            eig_idx <- eig_sort$ix
+
+            W <- U[, eig_idx[1:L]]
+        return (w)
+    } else{
+        eigen_res <- irlba(C, nv = L)
+
+        U <- eigen_res$u
+        V <- eigen_res$v
+        #     eig_sort <- sort(V, decreasing = T, index.return = T)
+        #     eig_idx <- eig_sort$ix
+        #
+        #     W <- U[, eig_idx[1:L]]
+    }
 }
 
 get_major_eigenvalue <- function(C, L) {
@@ -228,7 +240,7 @@ DDRTree_cpp <- function(X,
     if (is.null(lambda)){
         lambda = 5 * ncol(X)
     }
-    ddrtree_res <- DDRTree_reduce_dim(X, Z, Y, W, dimensions, maxIter, K,  sigma,  lambda,  gamma, tol, verbose)
+    ddrtree_res <- DDRTree_reduce_dim(X, Z, Y, W, dimensions, maxIter, K,  sigma,  lambda,  param.gamma, tol, verbose)
 
     return(list(W = ddrtree_res$W, Z = ddrtree_res$Z, stree = ddrtree_res$stree, Y = ddrtree_res$Y, history = NULL))
 }
