@@ -241,14 +241,16 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
             Rcpp::Rcout << "Computing distZY" << std::endl;
 
         sq_dist_cpp(Z_out, Y_out, distZY);
-        //Rcpp::Rcout << distZY << std::endl;
+        Rcpp::Rcout << distZY << std::endl;
 
         if (verbose)
             Rcpp::Rcout << "Computing min_dist" << std::endl;
         //min_dist <- matrix(rep(apply(distZY, 1, min), times = K), ncol = K, byrow = F)
 
         VectorXd distZY_minCoeff = distZY.rowwise().minCoeff();
-        for (int i=0; i < min_dist.cols(); i++)
+	if (verbose)
+            Rcpp::Rcout << "distZY_minCoeff = " << distZY_minCoeff << std::endl;
+	for (int i=0; i < min_dist.cols(); i++)
         {
             min_dist.col(i) = distZY_minCoeff;
         }
@@ -354,14 +356,18 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
             Rcpp::Rcout << "... stage 1" << std::endl;
         tmp = ((Gamma + (L * (lambda / gamma))) * ((gamma + 1.0) / gamma)).sparseView();
         //Rcpp::Rcout << tmp << std::endl;
-        if (verbose)
+        if (verbose){
             Rcpp::Rcout << "... stage 2" << std::endl;
-        tmp = tmp - (R.transpose().sparseView() * R.sparseView());
+       	    //Rcpp::Rcout << R.transpose() << std::endl;
+	}
+
+	SparseMatrix<double> R_sp = R.sparseView();
+
+	tmp = tmp - (R_sp.transpose() * R_sp);
         //tmp = tmp_dense.sparseView();
 
         if (verbose){
             Rcpp::Rcout << "Pre-computing LLT analysis" << std::endl;
-
             Rcpp::Rcout << "tmp is (" << tmp.rows() << "x" << tmp.cols() <<"), " << tmp.nonZeros() << " non-zero values" << std::endl;
 
         }
