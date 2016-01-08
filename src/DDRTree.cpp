@@ -231,20 +231,22 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
             B(target(*ei, g), source(*ei, g)) = 1;
         }
         //Rcpp::Rcout << "B: " << std::endl << B << std::endl;
+        if (verbose)
+            Rcpp::Rcout << "   B : (" << B.rows() << " x " << B.cols() << ")" << std::endl;
 
         old_spanning_tree = spanning_tree;
 
         L = B.colwise().sum().asDiagonal();
         L = L - B;
 
-        if (verbose)
-            Rcpp::Rcout << "Computing distZY" << std::endl;
-
         sq_dist_cpp(Z_out, Y_out, distZY);
+        if (verbose)
+            Rcpp::Rcout << "   distZY : (" << distZY.rows() << " x " << distZY.cols() << ")" << std::endl;
+
         //Rcpp::Rcout << distZY << std::endl;
 
         if (verbose)
-            Rcpp::Rcout << "Computing min_dist" << std::endl;
+            Rcpp::Rcout << "   min_dist : (" << min_dist.rows() << " x " << min_dist.cols() << ")" << std::endl;
         //min_dist <- matrix(rep(apply(distZY, 1, min), times = K), ncol = K, byrow = F)
 
         VectorXd distZY_minCoeff = distZY.rowwise().minCoeff();
@@ -259,7 +261,7 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
         //Rcpp::Rcout << tmp_distZY << std::endl;
 
         if (verbose)
-            Rcpp::Rcout << "Computing tmpR" << std::endl;
+            Rcpp::Rcout << "   tmp_R : (" << tmp_R.rows() << " x " << tmp_R.cols() << ")" << std::endl;
         //tmp_R <- exp(-tmp_distZY / params$sigma)
         tmp_R = tmp_distZY.array() / (-1.0 * sigma);
         //Rcpp::Rcout << tmp_R << std::endl;
@@ -267,7 +269,7 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
         tmp_R = tmp_R.array().exp().matrix();
 
         if (verbose)
-            Rcpp::Rcout << "Computing R" << std::endl;
+            Rcpp::Rcout << "   R : (" << R.rows() << " x " << R.cols() << ")" << std::endl;
         //R <- tmp_R / matrix(rep(rowSums(tmp_R), times = K), byrow = F, ncol = K)
 
         VectorXd tmp_R_rowsums =  tmp_R.rowwise().sum();
@@ -281,22 +283,20 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
         //Rcpp::Rcout << R << std::endl;
 
         if (verbose)
-            Rcpp::Rcout << "Computing Gamma" << std::endl;
+            Rcpp::Rcout << "   Gamma : (" << Gamma.rows() << " x " << Gamma.cols() << ")" << std::endl;
         //Gamma <- matrix(rep(0, ncol(R) ^ 2), nrow = ncol(R))
         Gamma = MatrixXd::Zero(R.cols(), R.cols());
         //diag(Gamma) <- colSums(R)
         Gamma.diagonal() = R.colwise().sum();
         //Rcpp::Rcout << Gamma << std::endl;
-        if (verbose)
-            Rcpp::Rcout << "Computing obj1" << std::endl;
+
         //termination condition
         //obj1 <- - params$sigma * sum(log(rowSums(exp(-tmp_distZY / params$sigma))) - min_dist[, 1] / params$sigma)
         VectorXd x1 = (tmp_distZY.array() / -sigma).exp().rowwise().sum().log();
         //Rcpp::Rcout << "Computing x1 " << x1.transpose() << std::endl;
         double obj1 = -sigma * (x1 - min_dist.col(0) / sigma).sum();
         //Rcpp::Rcout << obj1 << std::endl;
-        if (verbose)
-            Rcpp::Rcout << "Computing obj2" << std::endl;
+
         //obj2 <- (norm(X - W %*% Z, '2'))^2 + params$lambda * sum(diag(Y %*% L %*% t(Y))) + params$gamma * obj1 #sum(diag(A))
         //Rcpp:Rcout << X_in - W_out * Z_out << std::endl;
 
@@ -329,9 +329,11 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
 
         if (verbose)
             Rcpp::Rcout << "Checking termination criterion" << std::endl;
-        if(iter > 1) {
+        if(iter >= 1) {
             double delta_obj = std::abs(objective_vals[iter] - objective_vals[iter - 1]);
             delta_obj /=  std::abs(objective_vals[iter - 1]);
+            if (verbose)
+                Rcpp::Rcout << "delta_obj: " << delta_obj << std::endl;
             if(delta_obj < eps) {
                 break;
             }
@@ -354,19 +356,20 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
             Rcpp::Rcout << "... stage 1" << std::endl;
         tmp = ((Gamma + (L * (lambda / gamma))) * ((gamma + 1.0) / gamma)).sparseView();
         //Rcpp::Rcout << tmp << std::endl;
-        if (verbose)
+        if (verbose){
             Rcpp::Rcout << "... stage 2" << std::endl;
+            //Rcpp::Rcout << R.transpose().sparseView() * R.sparseView() << std::endl;
+        }
+
         tmp = tmp - (R.transpose().sparseView() * R.sparseView());
         //tmp = tmp_dense.sparseView();
 
         if (verbose){
             Rcpp::Rcout << "Pre-computing LLT analysis" << std::endl;
-
             Rcpp::Rcout << "tmp is (" << tmp.rows() << "x" << tmp.cols() <<"), " << tmp.nonZeros() << " non-zero values" << std::endl;
-
         }
 
-        SimplicialLLT <SparseMatrix<double> > solver;
+        SimplicialLLT <SparseMatrix<double>, Lower, AMDOrdering<int> > solver;
         solver.compute(tmp);
         if(solver.info()!=Success) {
             // decomposition failed
