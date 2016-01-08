@@ -79,25 +79,34 @@ void sq_dist_cpp(const MatrixXd& a, const MatrixXd& b,  MatrixXd& W){
 //     bb_repmat <- matrix(rep(bb, times = ncol(a)), nrow = ncol(a), byrow = T)
 //     dist <- abs(aa_repmat + bb_repmat - 2 * ab)
 
+//    Rcpp::Rcout << "   a nan check : (" << a.rows() << "x" << a.cols() << ", " << a.maxCoeff() << " )" << std::endl;
+//    Rcpp::Rcout << "   b nan check : (" << b.rows() << "x" << b.cols() << ", " << b.maxCoeff() << " )" << std::endl;
+
     VectorXd aa = (a.array() * a.array()).colwise().sum();
     VectorXd bb = (b.array() * b.array()).colwise().sum();
     MatrixXd ab = a.transpose() * b;
+//    Rcpp::Rcout << "   ab nan check : (" << ab.rows() << "x" << ab.cols() << ", " << ab.maxCoeff() << " )" << std::endl;
 
     MatrixXd aa_repmat;
-    aa_repmat.resize(b.cols(), b.cols());
+    aa_repmat.resize(a.cols(), b.cols());
     for (int i=0; i < aa_repmat.cols(); i++)
     {
         aa_repmat.col(i) = aa;
     }
+//    Rcpp::Rcout << "   aa_repmat nan check : (" << aa_repmat.rows() << "x" << aa_repmat.cols() << ", " << aa_repmat.maxCoeff() << " )" << std::endl;
 
     MatrixXd bb_repmat;
-    bb_repmat.resize(a.cols(), a.cols());
-    for (int i=0; i < bb_repmat.cols(); i++)
+    bb_repmat.resize(a.cols(), b.cols());
+    for (int i=0; i < bb_repmat.rows(); i++)
     {
         bb_repmat.row(i) = bb;
     }
 
+//    Rcpp::Rcout << "   bb_repmat nan check : (" << bb_repmat.rows() << "x" << bb_repmat.cols() << ", " << bb_repmat.maxCoeff() << " )" << std::endl;
     W = aa_repmat + bb_repmat - 2 * ab;
+//    Rcpp::Rcout << "   W nan check : (" << W.rows() << "x" << W.cols() << ", " << W.maxCoeff() << " )" << std::endl;
+
+
     W = W.array().abs().matrix();
 }
 
@@ -166,7 +175,7 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
 
     //SpMat R(X_in.cols(), num_clusters);
     MatrixXd R;
-    R.resize(tmp_R.cols(), num_clusters);
+    R.resize(tmp_R.rows(), num_clusters);
 
     //SpMat Gamma(R.cols(), R.cols());
     MatrixXd Gamma = MatrixXd::Zero(R.cols(), R.cols());
@@ -238,19 +247,23 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
 
         L = B.colwise().sum().asDiagonal();
         L = L - B;
+        Rcpp::Rcout << "   Z_out nan check : (" << Z_out.rows() << "x" << Z_out.cols() << ", " << Z_out.maxCoeff() << " )" << std::endl;
+
+        Rcpp::Rcout << "   Y_out nan check : (" << Y_out.rows() << "x" << Y_out.cols() << ", " << Y_out.maxCoeff() << " )" << std::endl;
 
         sq_dist_cpp(Z_out, Y_out, distZY);
+        Rcpp::Rcout << "   distZY nan check : (" << distZY.maxCoeff() << " )" << std::endl;
         if (verbose)
             Rcpp::Rcout << "   distZY : (" << distZY.rows() << " x " << distZY.cols() << ")" << std::endl;
-
-        //Rcpp::Rcout << distZY << std::endl;
 
         if (verbose)
             Rcpp::Rcout << "   min_dist : (" << min_dist.rows() << " x " << min_dist.cols() << ")" << std::endl;
         //min_dist <- matrix(rep(apply(distZY, 1, min), times = K), ncol = K, byrow = F)
 
         VectorXd distZY_minCoeff = distZY.rowwise().minCoeff();
-        for (int i=0; i < min_dist.cols(); i++)
+	    if (verbose)
+            Rcpp::Rcout << "distZY_minCoeff = " << std::endl;
+	    for (int i=0; i < min_dist.cols(); i++)
         {
             min_dist.col(i) = distZY_minCoeff;
         }
@@ -300,20 +313,12 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
         //obj2 <- (norm(X - W %*% Z, '2'))^2 + params$lambda * sum(diag(Y %*% L %*% t(Y))) + params$gamma * obj1 #sum(diag(A))
         //Rcpp:Rcout << X_in - W_out * Z_out << std::endl;
 
-        // TODO: replace this with IRLBA
-        //JacobiSVD<MatrixXd> svd(X_in - W_out * Z_out, ComputeThinU | ComputeThinV);
         if (verbose){
             Rcpp::Rcout << "   X : (" << X_in.rows() << " x " << X_in.cols() << ")" << std::endl;
             Rcpp::Rcout << "   W : (" << W_out.rows() << " x " << W_out.cols() << ")" << std::endl;
             Rcpp::Rcout << "   Z : (" << Z_out.rows() << " x " << Z_out.cols() << ")" << std::endl;
         }
         double major_eigen_value = as<double>(get_major_eigenvalue(X_in - W_out * Z_out,dimensions));
-        //const int X_n = W_R.nrow(), X_p = W_R.ncol();
-        //Map<MatrixXd> W(W_R.begin(), X_n, X_p);
-
-
-        //MatrixXf::Index maxRow, maxCol;
-        //double obj2 = svd.singularValues().array().abs().maxCoeff();
         double obj2 = major_eigen_value;
         //Rcpp::Rcout << "norm = " << obj2 << std::endl;
         obj2 = obj2 * obj2;
@@ -345,23 +350,17 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
             Rcpp::Rcout << "Computing tmp" << std::endl;
         //tmp <- t(solve( ( ( (params$gamma + 1) / params$gamma) * ((params$lambda / params$gamma) * L + Gamma) - t(R) %*% R), t(R)))
 
-        //tmp = ((Gamma + (L * (lambda / gamma))) * ((gamma + 1.0) / gamma)).sparseView();
-        //Rcpp::Rcout << tmp << std::endl;
-        //tmp = tmp - (R.sparseView().transpose() * R.sparseView());
-        //MatrixXd tmp = (L * (lambda / gamma) + Gamma) * ((gamma + 1.0) / gamma) - R.transpose() * R;
-        //Rcpp::Rcout << tmp << std::endl;
-        //tmp = tmp.llt().solve(R.transpose()).transpose();
-
         if (verbose)
             Rcpp::Rcout << "... stage 1" << std::endl;
         tmp = ((Gamma + (L * (lambda / gamma))) * ((gamma + 1.0) / gamma)).sparseView();
         //Rcpp::Rcout << tmp << std::endl;
         if (verbose){
             Rcpp::Rcout << "... stage 2" << std::endl;
-            //Rcpp::Rcout << R.transpose().sparseView() * R.sparseView() << std::endl;
-        }
+       	    //Rcpp::Rcout << R.transpose() << std::endl;
+	    }
 
-        tmp = tmp - (R.transpose().sparseView() * R.sparseView());
+	    SparseMatrix<double> R_sp = R.sparseView();
+	    tmp = tmp - (R_sp.transpose() * R_sp);
         //tmp = tmp_dense.sparseView();
 
         if (verbose){
@@ -369,18 +368,23 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
             Rcpp::Rcout << "tmp is (" << tmp.rows() << "x" << tmp.cols() <<"), " << tmp.nonZeros() << " non-zero values" << std::endl;
         }
 
+        //Rcpp::Rcout << tmp << std::endl;
         SimplicialLLT <SparseMatrix<double>, Lower, AMDOrdering<int> > solver;
         solver.compute(tmp);
         if(solver.info()!=Success) {
             // decomposition failed
             Rcpp::Rcout << "Error!" << std::endl;
-        }
-        if (verbose)
-            Rcpp::Rcout << "Computing LLT" << std::endl;
-        tmp_dense = solver.solve(R.transpose()).transpose();
-        if(solver.info()!=Success) {
-            // solving failed
-            Rcpp::Rcout << "Error!" << std::endl;
+            tmp_dense = tmp;
+            tmp_dense = tmp_dense.partialPivLu().solve(R.transpose()).transpose();
+            Rcpp::Rcout << tmp_dense << std::endl;
+        }else{
+            if (verbose)
+                Rcpp::Rcout << "Computing LLT" << std::endl;
+            tmp_dense = solver.solve(R.transpose()).transpose();
+            if(solver.info()!=Success) {
+                // solving failed
+                Rcpp::Rcout << "Error!" << std::endl;
+            }
         }
 
         //tmp_dense = tmp_dense.llt().solve(R.transpose()).transpose();
@@ -388,14 +392,20 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
         if (verbose)
             Rcpp::Rcout << "Computing Q" << std::endl;
         //Q <- 1 / (params$gamma + 1) * (diag(1, N) + tmp %*% t(R))
-        Q = ((MatrixXd::Identity(X_in.cols(), X_in.cols()) + tmp_dense * R.transpose() ).array() / (gamma + 1.0));
+        Q = ((MatrixXd::Identity(X_in.cols(), X_in.cols()) + (tmp_dense * R.transpose()) ).array() / (gamma + 1.0));
 
+        if (verbose){
+            Rcpp::Rcout << "gamma: " << gamma << std::endl;
+            Rcpp::Rcout << "   X_in : (" << X_in.rows() << " x " << X_in.cols() << ")" << std::endl;
+            Rcpp::Rcout << "   Q : (" << Q.rows() << " x " << Q.cols() << ")" << std::endl;
+            //Rcpp::Rcout << Q << std::endl;
+        }
 
-
-        if (verbose)
-            Rcpp::Rcout << "Computing C" << std::endl;
         // C <- X %*% Q
         C = X_in * Q;
+        if (verbose)
+            Rcpp::Rcout << "   C : (" << C.rows() << " x " << C.cols() << ")" << std::endl;
+
         //Rcpp::Rcout << C << std::endl;
 
         //Rcpp::Rcout << "Computing tmp1" << std::endl;
@@ -405,6 +415,8 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
 
         if (verbose){
             Rcpp::Rcout << "Computing W" << std::endl;
+            //Rcpp::Rcout << "tmp1 = " << std::endl;
+            //Rcpp::Rcout << tmp1 << std::endl;
             //Rcpp::Rcout << (tmp1 + tmp1.transpose()) / 2 << std::endl;
         }
 
