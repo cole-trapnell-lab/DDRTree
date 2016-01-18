@@ -185,8 +185,9 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
     MatrixXd tmp_dense;
     tmp_dense.resize(Gamma.rows(), Gamma.cols());
 
+    //SpMat Q;
     MatrixXd Q;
-    Q.resize(X_in.cols(), X_in.cols());
+    Q.resize(tmp_dense.rows(), R.rows());
 
     MatrixXd C;
     C.resize(X_in.rows(), Q.cols());
@@ -388,11 +389,56 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
         }
 
         //tmp_dense = tmp_dense.llt().solve(R.transpose()).transpose();
+        if (verbose)
+            Rcpp::Rcout << "tmp_dense " << tmp_dense.rows() << "x" << tmp_dense.cols() <<") "<< std::endl;
 
         if (verbose)
-            Rcpp::Rcout << "Computing Q" << std::endl;
+            Rcpp::Rcout << "Computing Q " << Q.rows() << "x" << Q.cols() <<") "<< std::endl;
         //Q <- 1 / (params$gamma + 1) * (diag(1, N) + tmp %*% t(R))
-        Q = ((MatrixXd::Identity(X_in.cols(), X_in.cols()) + (tmp_dense * R.transpose()) ).array() / (gamma + 1.0));
+        //tmp = tmp_dense.sparseView();
+        Rcpp::Rcout << "tmp_dense is (" << tmp_dense.rows() << "x" << tmp_dense.cols() <<"), " << tmp_dense.nonZeros() << " non-zero values" << std::endl;
+        Rcpp::Rcout << "R_sp is (" << R_sp.rows() << "x" << R_sp.cols() <<"), " << R_sp.nonZeros() << " non-zero values" << std::endl;
+
+        /////////////////////////
+        /*
+        double gamma_coeff = 1.0 / (1 + gamma);
+
+        SpMat Q_id(tmp_dense.rows(), R.rows());
+        Q_id.setIdentity();
+
+        tmp1 = gamma_coeff * (X_in * tmp_dense.sparseView());
+        if (verbose)
+            Rcpp::Rcout << "First tmp1 product complete: " << tmp1.rows() << "x" << tmp1.cols() <<"), " << tmp1.nonZeros() << " non-zero values" << std::endl;
+        tmp1 = tmp1 * R_sp.transpose();
+        if (verbose)
+            Rcpp::Rcout << "Second tmp1 product complete: " << tmp1.rows() << "x" << tmp1.cols() <<"), " << tmp1.nonZeros() << " non-zero values" << std::endl;
+        tmp1 += gamma_coeff * X_in;
+        if (verbose)
+            Rcpp::Rcout << "Third tmp1 product complete: " << tmp1.rows() << "x" << tmp1.cols() <<"), " << tmp1.nonZeros() << " non-zero values" << std::endl;
+        tmp1 = tmp1 * X_in.transpose();
+        if (verbose)
+            Rcpp::Rcout << "Final tmp1 product complete: " << tmp1.rows() << "x" << tmp1.cols() <<"), " << tmp1.nonZeros() << " non-zero values" << std::endl;
+        */
+        ///////////////////////////
+/*
+         Q = ((MatrixXd::Identity(X_in.cols(), X_in.cols()) + (tmp_dense * R.transpose()) ).array() / (gamma + 1.0));
+
+         if (verbose){
+        Rcpp::Rcout << "gamma: " << gamma << std::endl;
+        Rcpp::Rcout << "   X_in : (" << X_in.rows() << " x " << X_in.cols() << ")" << std::endl;
+        Rcpp::Rcout << "   Q : (" << Q.rows() << " x " << Q.cols() << ")" << std::endl;
+        //Rcpp::Rcout << Q << std::endl;
+         }
+
+        // C <- X %*% Q
+        C = X_in * Q;
+        if (verbose)
+        Rcpp::Rcout << "   C : (" << C.rows() << " x " << C.cols() << ")" << std::endl;
+        tmp1 =  C * X_in.transpose();
+*/
+        /////////////////////////
+
+        Q = (X_in + ((X_in * tmp_dense) * R.transpose()) ).array() / (gamma + 1.0);
 
         if (verbose){
             Rcpp::Rcout << "gamma: " << gamma << std::endl;
@@ -402,15 +448,15 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
         }
 
         // C <- X %*% Q
-        C = X_in * Q;
-        if (verbose)
-            Rcpp::Rcout << "   C : (" << C.rows() << " x " << C.cols() << ")" << std::endl;
+        //C = X_in * Q;
+        C = Q;
 
-        //Rcpp::Rcout << C << std::endl;
+        tmp1 =  Q * X_in.transpose();
 
-        //Rcpp::Rcout << "Computing tmp1" << std::endl;
-        //tmp1 <- C %*% t(X)
-        tmp1 =  C * X_in.transpose();
+        /////////////////////////
+
+        //Rcpp::Rcout << tmp1 << std::endl;
+
         //Rcpp::Rcout << tmp1 << std::endl;
 
         if (verbose){
