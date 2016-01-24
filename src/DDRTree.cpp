@@ -248,12 +248,12 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
 
         L = B.colwise().sum().asDiagonal();
         L = L - B;
-        Rcpp::Rcout << "   Z_out nan check : (" << Z_out.rows() << "x" << Z_out.cols() << ", " << Z_out.maxCoeff() << " )" << std::endl;
+        //Rcpp::Rcout << "   Z_out nan check : (" << Z_out.rows() << "x" << Z_out.cols() << ", " << Z_out.maxCoeff() << " )" << std::endl;
 
-        Rcpp::Rcout << "   Y_out nan check : (" << Y_out.rows() << "x" << Y_out.cols() << ", " << Y_out.maxCoeff() << " )" << std::endl;
+        //Rcpp::Rcout << "   Y_out nan check : (" << Y_out.rows() << "x" << Y_out.cols() << ", " << Y_out.maxCoeff() << " )" << std::endl;
 
         sq_dist_cpp(Z_out, Y_out, distZY);
-        Rcpp::Rcout << "   distZY nan check : (" << distZY.maxCoeff() << " )" << std::endl;
+        //Rcpp::Rcout << "   distZY nan check : (" << distZY.maxCoeff() << " )" << std::endl;
         if (verbose)
             Rcpp::Rcout << "   distZY : (" << distZY.rows() << " x " << distZY.cols() << ")" << std::endl;
 
@@ -396,8 +396,8 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
             Rcpp::Rcout << "Computing Q " << Q.rows() << "x" << Q.cols() <<") "<< std::endl;
         //Q <- 1 / (params$gamma + 1) * (diag(1, N) + tmp %*% t(R))
         //tmp = tmp_dense.sparseView();
-        Rcpp::Rcout << "tmp_dense is (" << tmp_dense.rows() << "x" << tmp_dense.cols() <<"), " << tmp_dense.nonZeros() << " non-zero values" << std::endl;
-        Rcpp::Rcout << "R_sp is (" << R_sp.rows() << "x" << R_sp.cols() <<"), " << R_sp.nonZeros() << " non-zero values" << std::endl;
+        //Rcpp::Rcout << "tmp_dense is (" << tmp_dense.rows() << "x" << tmp_dense.cols() <<"), " << tmp_dense.nonZeros() << " non-zero values" << std::endl;
+        //Rcpp::Rcout << "R_sp is (" << R_sp.rows() << "x" << R_sp.cols() <<"), " << R_sp.nonZeros() << " non-zero values" << std::endl;
 
         /////////////////////////
         /*

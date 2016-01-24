@@ -1,13 +1,15 @@
 Package: DDRTree
 Type: Package
-Title: Learning principal trees
+Title: Learning principal graphs with DDRTree
 Version: 0.1
 Date: 2015-12-06
 Author: Xiaojie Qiu and Cole Trapnell
-Depends: irlba
-Imports: Rcpp
-LinkingTo: Rcpp, RcppEigen, BH, igraph
+Depends:
+    irlba
+Imports:
+    Rcpp
+LinkingTo: Rcpp, RcppEigen, BH
 Maintainer: Xiaojie Qiu <xqiu@uw.edu>
-Description: Implements the DDRTree algorithm from "Dimensionality Reduction via Graph Structure Learning", by Mao et al (2015)
+Description: DDRTree reduces dimensionality and projects data onto principal graphs.
 License: Artistic License 2.0
-LazyData: TRUE
+RoxygenNote: 5.0.1
