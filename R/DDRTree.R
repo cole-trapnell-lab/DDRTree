@@ -17,14 +17,9 @@ pca_projection_R <- function(C, L) {
         return (W)
     } else{
         eigen_res <- irlba::irlba(C, nv = L)
-
         U <- eigen_res$u
         V <- eigen_res$v
-        eig_sort <- sort(V, decreasing = T, index.return = T)
-        eig_idx <- eig_sort$ix
-
-        W <- U[, eig_idx[1:L]]
-        return (W)
+        return (V)
     }
 }
 
