@@ -3,7 +3,7 @@ Type: Package
 Title: Learning principal graphs with DDRTree
 Version: 0.1
 Date: 2015-12-06
-Author: Xiaojie Qiu and Cole Trapnell
+Author: Xiaojie Qiu, Cole Trapnell, Qi Mao, Li Wang
 Depends:
     irlba
 Imports:
