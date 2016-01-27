@@ -1,7 +1,7 @@
-#' Compute the projection
+#' Compute the PCA projection
 #'
-#' @param C description
-#' @param L description
+#' @param C data matrix used for PCA projection
+#' @param L number for the top principal components
 #' @import irlba irlba
 #' @export
 pca_projection_R <- function(C, L) {
@@ -42,9 +42,7 @@ get_major_eigenvalue <- function(C, L) {
     #     W <- U[, eig_idx[1:L]]
 }
 
-#' perform PCA projection
-#' solve the problem size(C) = \eqn{N \times N}, size(W) = \eqn{N \times L}
-#' \eqn{max_\mathbf{W} trace(\mathbf{W}' \mathbf{C W} }) : \eqn{\mathbf{W}' \mathbf{W} = \mathbf{I}}
+#' calculate the square distance between a, b
 #' @param a a matrix with \eqn{D \times N} dimension
 #' @param b a matrix with \eqn{D \times N} dimension
 #' @return a numeric value for the different between a and b

@@ -79,7 +79,6 @@
 #'We implemented the algorithm mostly in Rcpp for the purpose of efficiency. It also has extensive optimization
 #'for sparse input data. This implementation is originally based on the matlab code provided from the author of DDRTree paper.
 #'
-#'@author Xiaojie Qiu (xqiu@uw.edu) and Cole Trapnell (coletrap@uw.edu)
 #'@docType package
 #'@name DDRTree
 #'@import irlba

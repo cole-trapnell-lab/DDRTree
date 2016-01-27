@@ -2,9 +2,7 @@
 % Please edit documentation in R/DDRTree.R
 \name{sqdist_R}
 \alias{sqdist_R}
-\title{perform PCA projection
-solve the problem size(C) = \eqn{N \times N}, size(W) = \eqn{N \times L}
-\eqn{max_\mathbf{W} trace(\mathbf{W}' \mathbf{C W} }) : \eqn{\mathbf{W}' \mathbf{W} = \mathbf{I}}}
+\title{calculate the square distance between a, b}
 \usage{
 sqdist_R(a, b)
 }
@@ -17,8 +15,6 @@ sqdist_R(a, b)
 a numeric value for the different between a and b
 }
 \description{
-perform PCA projection
-solve the problem size(C) = \eqn{N \times N}, size(W) = \eqn{N \times L}
-\eqn{max_\mathbf{W} trace(\mathbf{W}' \mathbf{C W} }) : \eqn{\mathbf{W}' \mathbf{W} = \mathbf{I}}
+calculate the square distance between a, b
 }
 

@@ -2,16 +2,16 @@
 % Please edit documentation in R/DDRTree.R
 \name{pca_projection_R}
 \alias{pca_projection_R}
-\title{Compute the projection}
+\title{Compute the PCA projection}
 \usage{
 pca_projection_R(C, L)
 }
 \arguments{
-\item{C}{description}
+\item{C}{data matrix used for PCA projection}
 
-\item{L}{description}
+\item{L}{number for the top principal components}
 }
 \description{
-Compute the projection
+Compute the PCA projection
 }
 
