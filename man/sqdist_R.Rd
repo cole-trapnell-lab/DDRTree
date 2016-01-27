@@ -3,22 +3,22 @@
 \name{sqdist_R}
 \alias{sqdist_R}
 \title{perform PCA projection
-solve the problem size(C) = NxN, size(W) = NxL
-max_W trace( W' C W ) : W' W = I}
+solve the problem size(C) = \eqn{N \times N}, size(W) = \eqn{N \times L}
+\eqn{max_\mathbf{W} trace(\mathbf{W}' \mathbf{C W} }) : \eqn{\mathbf{W}' \mathbf{W} = \mathbf{I}}}
 \usage{
 sqdist_R(a, b)
 }
 \arguments{
-\item{a}{a matrix with D x N dimension}
+\item{a}{a matrix with \eqn{D \times N} dimension}
 
-\item{b}{a matrix with D x N dimension}
+\item{b}{a matrix with \eqn{D \times N} dimension}
 }
 \value{
 a numeric value for the different between a and b
 }
 \description{
 perform PCA projection
-solve the problem size(C) = NxN, size(W) = NxL
-max_W trace( W' C W ) : W' W = I
+solve the problem size(C) = \eqn{N \times N}, size(W) = \eqn{N \times L}
+\eqn{max_\mathbf{W} trace(\mathbf{W}' \mathbf{C W} }) : \eqn{\mathbf{W}' \mathbf{W} = \mathbf{I}}
 }
 

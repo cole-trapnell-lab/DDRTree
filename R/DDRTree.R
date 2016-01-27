@@ -24,8 +24,8 @@ pca_projection_R <- function(C, L) {
 }
 
 #' Get the top L eigenvalues
-#' @param C description
-#' @param L description
+#' @param C data matrix used for eigendecomposition
+#' @param L number for the top eigenvalues
 #' @import irlba irlba
 #' @export
 get_major_eigenvalue <- function(C, L) {
@@ -43,10 +43,10 @@ get_major_eigenvalue <- function(C, L) {
 }
 
 #' perform PCA projection
-#' solve the problem size(C) = NxN, size(W) = NxL
-#' max_W trace( W' C W ) : W' W = I
-#' @param a a matrix with D x N dimension
-#' @param b a matrix with D x N dimension
+#' solve the problem size(C) = \eqn{N \times N}, size(W) = \eqn{N \times L}
+#' \eqn{max_\mathbf{W} trace(\mathbf{W}' \mathbf{C W} }) : \eqn{\mathbf{W}' \mathbf{W} = \mathbf{I}}
+#' @param a a matrix with \eqn{D \times N} dimension
+#' @param b a matrix with \eqn{D \times N} dimension
 #' @return a numeric value for the different between a and b
 #' @export
 sqdist_R <- function(a, b) {
@@ -60,7 +60,7 @@ sqdist_R <- function(a, b) {
 }
 
 #' Perform DDRTree construction
-#' @param X a matrix with D x N dimension which is needed to perform DDRTree construction
+#' @param \eqn{\mathbf{X}} a matrix with \eqn{\mathbf{D \times N}} dimension which is needed to perform DDRTree construction
 #' @param dimensions reduced dimension
 #' @param maxIter maximum iterations
 #' @param sigma bandwidth parameter

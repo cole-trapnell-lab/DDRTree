@@ -7,9 +7,9 @@
 get_major_eigenvalue(C, L)
 }
 \arguments{
-\item{C}{description}
+\item{C}{data matrix used for eigendecomposition}
 
-\item{L}{description}
+\item{L}{number for the top eigenvalues}
 }
 \description{
 Get the top L eigenvalues
