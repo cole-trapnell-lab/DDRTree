@@ -1,4 +1,3 @@
-
 #'DDRTree - An algorithm to reduce dimensionality and learning principal graphs simultaneously
 #'
 #' This is an R and C code implementation of the DDRTree algorithm from Qi Mao, Li Wang et al.
@@ -7,7 +6,7 @@
 #' \url{http://dl.acm.org/citation.cfm?id=2783309}) to perform dimension reduction and principal graph
 #' learning simultaneously. Please cite this package and KDD'15 paper if you found DDRTree is useful for your research.
 #'
-#'@section Background:
+#'@section Introduction:
 #'The unprecedented increase in big-data causes a huge difficulty in data visualization and downstream analysis.
 #'Conventional dimension reduction approaches (for example, PCA, ICA, Isomap, ILE, etc.) are limited in their ability
 #'to explictly recover the intrinisic structure from the data as well as the discriminative feature representation,

@@ -40,7 +40,7 @@ The 21st ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD'15), 
 \url{http://dl.acm.org/citation.cfm?id=2783309}) to perform dimension reduction and principal graph
 learning simultaneously. Please cite this package and KDD'15 paper if you found DDRTree is useful for your research.
 }
-\section{Background}{
+\section{Introduction}{
 
 The unprecedented increase in big-data causes a huge difficulty in data visualization and downstream analysis.
 Conventional dimension reduction approaches (for example, PCA, ICA, Isomap, ILE, etc.) are limited in their ability
