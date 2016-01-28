@@ -58,7 +58,7 @@ sqdist_R <- function(a, b) {
 }
 
 #' Perform DDRTree construction
-#' @param \eqn{\mathbf{X}} a matrix with \eqn{\mathbf{D \times N}} dimension which is needed to perform DDRTree construction
+#' @param X a matrix with \eqn{\mathbf{D \times N}} dimension which is needed to perform DDRTree construction
 #' @param dimensions reduced dimension
 #' @param maxIter maximum iterations
 #' @param sigma bandwidth parameter
