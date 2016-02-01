@@ -1,8 +1,8 @@
 #include "DDRTree.h"
 
 #include <boost/functional/hash.hpp>
-#include <boost/graph/adjacency_matrix.hpp>
-#include <boost/graph/kruskal_min_spanning_tree.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/prim_minimum_spanning_tree.hpp>
 
 //using namespace boost;
 //using boost::functional;
@@ -131,7 +131,7 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
     Z_out = Z_in;
 
     int N_cells = X_in.cols();
-
+/*
     typedef boost::property<boost::edge_weight_t, double> EdgeWeightProperty;
     typedef boost::adjacency_matrix<
                                   boost::undirectedS, boost::no_property,
@@ -148,13 +148,33 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
             tie(e, inserted) = add_edge(i, j, g);
         }
     }
+*/
+    using namespace boost;
+    typedef boost::property<boost::edge_weight_t, double> EdgeWeightProperty;
+    typedef boost::adjacency_list < vecS, vecS, undirectedS,
+                                    property<vertex_distance_t, double>, property < edge_weight_t, double > > Graph;
+
+    typedef boost::graph_traits < Graph >::edge_descriptor Edge;
+    typedef boost::graph_traits < Graph >::vertex_descriptor Vertex;
+    typedef boost::graph_traits<Graph>::edge_iterator edge_iter;
+
+    Graph g(Y_in.cols());
+    //property_map<Graph, edge_weight_t>::type weightmap = get(edge_weight, g);
+    for (std::size_t j = 0; j < Y_in.cols(); ++j) {
+        for (std::size_t i = 0; i < Y_in.cols() && i <= j ; ++i) {
+            if (i != j){
+                Edge e; bool inserted;
+                tie(e, inserted) = add_edge(i, j, g);
+            }
+        }
+    }
 
     boost::property_map<Graph, boost::edge_weight_t>::type EdgeWeightMap = get(boost::edge_weight_t(), g);
-    typedef boost::graph_traits<Graph>::edge_iterator edge_iter;
 
     MatrixXd B = MatrixXd::Zero(Y_in.cols(), Y_in.cols());
 
-    std::vector < Edge > old_spanning_tree;
+    std::vector < graph_traits < Graph >::vertex_descriptor >
+        old_spanning_tree(num_vertices(g));
 
     std::vector<double> objective_vals;
 
@@ -213,32 +233,37 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
             Rcpp::Rcout << "updating weights in graph" << std::endl;
         for(edgePair = edges(g); edgePair.first != edgePair.second; ++edgePair.first)
         {
-            //Rcpp::Rcout << "edge: " << source(*edgePair.first,g) << " " << target(*edgePair.first,g) << " : " << distsqMU(source(*edgePair.first,g), target(*edgePair.first,g)) << std::endl;
-            EdgeWeightMap[*edgePair.first] = distsqMU(source(*edgePair.first,g), target(*edgePair.first,g));
+            if (source(*edgePair.first,g) != target(*edgePair.first,g)){
+                //Rcpp::Rcout << "edge: " << source(*edgePair.first,g) << " " << target(*edgePair.first,g) << " : " << distsqMU(source(*edgePair.first,g), target(*edgePair.first,g)) << std::endl;
+                EdgeWeightMap[*edgePair.first] = distsqMU(source(*edgePair.first,g), target(*edgePair.first,g));
+            }
         }
 
-        std::vector < Edge > spanning_tree;
+        std::vector < graph_traits < Graph >::vertex_descriptor >
+            spanning_tree(num_vertices(g));
 
         if (verbose)
             Rcpp::Rcout << "Finding MST" << std::endl;
-        kruskal_minimum_spanning_tree(g, std::back_inserter(spanning_tree));
+        prim_minimum_spanning_tree(g, &spanning_tree[0]);
 
         if (verbose)
             Rcpp::Rcout << "Refreshing B matrix" << std::endl;
         // update the adjacency matrix. First, erase the old edges
-        for (std::vector < Edge >::iterator ei = old_spanning_tree.begin();
-             ei != old_spanning_tree.end(); ++ei)
+        for (size_t ei = 0; ei < old_spanning_tree.size(); ++ei)
         {
-            B(source(*ei, g), target(*ei, g)) = 0;
-            B(target(*ei, g), source(*ei, g)) = 0;
+//if (ei != old_spanning_tree[ei]){
+                B(ei, old_spanning_tree[ei]) = 0;
+                B(old_spanning_tree[ei], ei) = 0;
+//            }
         }
 
         // now add the new edges
-        for (std::vector < Edge >::iterator ei = spanning_tree.begin();
-             ei != spanning_tree.end(); ++ei)
+        for (size_t ei = 0; ei < spanning_tree.size(); ++ei)
         {
-            B(source(*ei, g), target(*ei, g)) = 1;
-            B(target(*ei, g), source(*ei, g)) = 1;
+            if (ei != spanning_tree[ei]){
+                B(ei, spanning_tree[ei]) = 1;
+                B(spanning_tree[ei], ei) = 1;
+            }
         }
         //Rcpp::Rcout << "B: " << std::endl << B << std::endl;
         if (verbose)
@@ -500,14 +525,13 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
     }
     typedef Eigen::Triplet<double> T;
     std::vector<T> tripletList;
-    tripletList.reserve(old_spanning_tree.size());
+    tripletList.reserve(2*old_spanning_tree.size());
     // Send back the weighted MST as a sparse matrix
-    for (std::vector < Edge >::iterator ei = old_spanning_tree.begin();
-         ei != old_spanning_tree.end(); ++ei)
+    for (size_t ei = 0; ei < old_spanning_tree.size(); ++ei)
     {
         //stree.insert(source(*ei, g), target(*ei, g)) = 1;//distsqMU(source(*ei, g), target(*ei, g));
-        tripletList.push_back(T( source(*ei, g), target(*ei, g), distsqMU(source(*ei, g), target(*ei, g))));
-        tripletList.push_back(T( target(*ei, g), source(*ei, g), distsqMU(source(*ei, g), target(*ei, g))));
+        tripletList.push_back(T( ei, old_spanning_tree[ei], distsqMU(ei, old_spanning_tree[ei])));
+        tripletList.push_back(T( old_spanning_tree[ei], ei, distsqMU(old_spanning_tree[ei], ei)));
     }
     stree = SpMat(N_cells, N_cells);
     stree.setFromTriplets(tripletList.begin(), tripletList.end());
