@@ -67,8 +67,42 @@ sqdist_R <- function(a, b) {
 #' @param param.gamma regularization parameter for k-means (the prefix of 'param' is used to avoid name collision with gamma)
 #' @param tol relative objective difference
 #' @param verbose emit extensive debug output
+#' @importFrom stats kmeans
 #' @return a list with W, Z, stree, Y, history
+#' W is the orthogonal set of d (dimensions) linear basis vector
+#' Z is the reduced dimension space
+#' stree is the smooth tree graph embedded in the low dimension space
+#' Y represents latent points as the center of Z
+#' @examples
+#' data('iris')
+#' iris_mat <- as.matrix(t(iris[, 1:4])) #subset the data
+#' #run DDRTree with ncenters equal to species number
+#' DDRTree_res <- DDRTree(iris_mat, dimensions = 2, maxIter = 20, sigma = 1e-3, lambda = 1, ncenter = 3,
+#' param.gamma = 10, tol = 1e-3, verbose = FALSE)
+#' Z <- DDRTree_res$Z #obatain matrix
+#' Y <- DDRTree_res$Y
+#' stree <- DDRTree_res$stree
+#' plot(Z[1, ], Z[2, ], col = iris$Species) #reduced dimension
+#' legend("center", legend = unique(iris$Species), cex=0.8, col=unique(iris$Species), pch = 1) #legend
+#' title(main="DDRTree reduced dimension", col.main="red", font.main=4)
+#' dev.off()
+#' plot(Y[1, ], Y[2, ], col = 'blue', pch = 17) #center of the Z
+#' title(main="DDRTree smooth principal curves", col.main="red", font.main=4)
+#'
+#' #run DDRTree with ncenters equal to species number
+#' DDRTree_res <- DDRTree(iris_mat, dimensions = 2, maxIter = 20, sigma = 1e-3, lambda = 1, ncenter = NULL,
+#' param.gamma = 10, tol = 1e-3, verbose = FALSE)
+#' Z <- DDRTree_res$Z #obatain matrix
+#' Y <- DDRTree_res$Y
+#' stree <- DDRTree_res$stree
+#' plot(Z[1, ], Z[2, ], col = iris$Species) #reduced dimension
+#' legend("center", legend = unique(iris$Species), cex=0.8, col=unique(iris$Species), pch = 1) #legend
+#' title(main="DDRTree reduced dimension", col.main="red", font.main=4)
+#' dev.off()
+#' plot(Y[1, ], Y[2, ], col = 'blue', pch = 2) #center of the Z
+#' title(main="DDRTree smooth principal curves", col.main="red", font.main=4)
 #' @export
+#'
 DDRTree <- function(X,
                         dimensions = 2,
                         maxIter = 20,
