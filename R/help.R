@@ -1,9 +1,9 @@
 #'DDRTree - An algorithm to reduce dimensionality and learning principal graphs simultaneously
 #'
-#' This is an R and C code implementation of the DDRTree algorithm from Qi Mao, Li Wang et al. \cr
+#' This is an R and C code implementation of the DDRTree algorithm from Qi Mao, Li Wang et al. \cr \cr
 #' Qi Mao, Li Wang, Steve Goodison, and Yijun Sun. Dimensionality Reduction via Graph Structure Learning.
 #' The 21st ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD'15), 2015 \cr
-#' \url{http://dl.acm.org/citation.cfm?id=2783309} \cr
+#' \url{http://dl.acm.org/citation.cfm?id=2783309} \cr \cr
 #' to perform dimension reduction and principal graph
 #' learning simultaneously. Please cite this package and KDD'15 paper if you found DDRTree is useful for your research.
 #'
