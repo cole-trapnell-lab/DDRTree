@@ -59,6 +59,9 @@ sqdist_R <- function(a, b) {
 
 #' Perform DDRTree construction
 #' @param X a matrix with \eqn{\mathbf{D \times N}} dimension which is needed to perform DDRTree construction
+#' @param initial_method a function to take the data transpose of X as input and then output the reduced dimension,
+#' row number should not larger than observation and column number should not be larger than variables (like isomap may only
+#' return matrix on valid sample sets). Sample names of returned reduced dimension should be preserved.
 #' @param dimensions reduced dimension
 #' @param maxIter maximum iterations
 #' @param sigma bandwidth parameter
@@ -106,6 +109,7 @@ sqdist_R <- function(a, b) {
 #' @export
 #'
 DDRTree <- function(X,
+                        initial_method = pca_projection_R,
                         dimensions = 2,
                         maxIter = 20,
                         sigma = 1e-3,
@@ -113,14 +117,22 @@ DDRTree <- function(X,
                         ncenter = NULL,
                         param.gamma = 10,
                         tol = 1e-3,
-                        verbose = F) {
+                        verbose = F, ...) {
 
     D <- nrow(X)
     N <- ncol(X)
 
     #initialization
     W <- pca_projection_R(X %*% t(X), dimensions)
-    Z <- t(W) %*% X
+    if(identical(initial_method, pca_projection_R)){
+        Z <- t(W) %*% X
+    }
+    else{
+      tmp <- initial_method(X, ...) #a function to return reduced dimension data
+      if(ncol(tmp) > D | nrow(tmp) > N)
+        stop('The dimension reduction method passed need to return correct dimensions')
+      Z <- t(tmp)
+    }
 
     if(is.null(ncenter)) {
         K <- N
