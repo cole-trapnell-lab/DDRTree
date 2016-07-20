@@ -131,7 +131,8 @@ DDRTree <- function(X,
       tmp <- initial_method(X, ...) #a function to return reduced dimension data
       if(ncol(tmp) > D | nrow(tmp) > N)
         stop('The dimension reduction method passed need to return correct dimensions')
-      Z <- t(tmp)
+      Z <- tmp[, 1:dimensions]
+      Z <- t(Z)
     }
 
     if(is.null(ncenter)) {
