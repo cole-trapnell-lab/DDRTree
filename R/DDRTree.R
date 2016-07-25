@@ -109,8 +109,8 @@ sqdist_R <- function(a, b) {
 #' @export
 #'
 DDRTree <- function(X,
-                        initial_method = pca_projection_R,
                         dimensions = 2,
+                        initial_method = NULL,
                         maxIter = 20,
                         sigma = 1e-3,
                         lambda = NULL,
@@ -124,7 +124,7 @@ DDRTree <- function(X,
 
     #initialization
     W <- pca_projection_R(X %*% t(X), dimensions)
-    if(identical(initial_method, pca_projection_R)){
+    if(is.null(initial_method)){
         Z <- t(W) %*% X
     }
     else{
