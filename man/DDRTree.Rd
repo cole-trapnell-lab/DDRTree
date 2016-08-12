@@ -6,8 +6,9 @@
 \alias{DDRTree-package}
 \title{Perform DDRTree construction}
 \usage{
-DDRTree(X, dimensions = 2, maxIter = 20, sigma = 0.001, lambda = NULL,
-  ncenter = NULL, param.gamma = 10, tol = 0.001, verbose = F)
+DDRTree(X, dimensions = 2, X.model_mat = NULL, maxIter = 20,
+  sigma = 0.001, lambda = NULL, ncenter = NULL, param.gamma = 10,
+  tol = 0.001, verbose = F)
 }
 \arguments{
 \item{X}{a matrix with \eqn{\mathbf{D \times N}} dimension which is needed to perform DDRTree construction}

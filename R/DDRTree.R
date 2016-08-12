@@ -16,7 +16,8 @@ pca_projection_R <- function(C, L) {
         W <- U[, eig_idx[1:L]]
         return (W)
     } else{
-        eigen_res <- irlba::irlba(C, nv = L)
+        initial_v <- as.matrix(qnorm(1:(ncol(C) + 1)/(ncol(C) + 1))[1:ncol(C)])
+        eigen_res <- irlba::irlba(C, nv = L, v = initial_v)
         U <- eigen_res$u
         V <- eigen_res$v
         return (V)
@@ -33,7 +34,8 @@ get_major_eigenvalue <- function(C, L) {
         return (base::norm(C, '2')^2);
     }else{
         #message("using irlba")
-        eigen_res <- irlba(C, nv = L)
+        initial_v <- as.matrix(qnorm(1:(ncol(C) + 1)/(ncol(C) + 1))[1:ncol(C)])
+        eigen_res <- irlba(C, nv = L, v = initial_v)
         return (max(abs(eigen_res$v)))
     }
     #     eig_sort <- sort(V, decreasing = T, index.return = T)
@@ -128,7 +130,10 @@ DDRTree <- function(X,
     }
     else {
         K <- ncenter
-        kmean_res <- kmeans(t(Z), K)
+        if (K > ncol(Z))
+            stop("Error: ncenters must be greater than or equal to ncol(X)")
+        centers = t(Z)[seq(1, ncol(Z), length.out=K),]
+        kmean_res <- kmeans(t(Z), K, centers=centers)
         Y <- kmean_res$centers
         Y <- t(Y)
     }
