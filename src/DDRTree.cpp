@@ -629,7 +629,7 @@ Rcpp::List DDRTree_reduce_dim(SEXP R_X,
     MatrixXd W_out;
     std::vector<double> objective_vals; //a vector for the value for the objective function at each iteration
 
-    DDRTree_reduce_dim_cpp(X, Z, Y, W, dimensions, maxiter, num_clusters, sigma, lambda, gamma, eps, verbose, Y_res, stree_res, Z_res);
+    DDRTree_reduce_dim_cpp(X, Z, Y, W, dimensions, maxiter, num_clusters, sigma, lambda, gamma, eps, verbose, Y_res, stree_res, Z_res, W_out, objective_vals);
 
     NumericMatrix X_res;
     NumericMatrix stree;
