@@ -29,11 +29,14 @@ DDRTree(X, dimensions = 2, maxIter = 20, sigma = 0.001, lambda = NULL,
 \item{verbose}{emit extensive debug output}
 }
 \value{
-a list with W, Z, stree, Y, history
-W is the orthogonal set of d (dimensions) linear basis vector
-Z is the reduced dimension space
-stree is the smooth tree graph embedded in the low dimension space
-Y represents latent points as the center of Z
+a list with \mathbf{W}, \mathbf{Z}, \mathbf{stree}, \mathbf{Y}, \mathbf{history}
+\item{W}{the orthogonal set of d (dimensions) linear basis vector}
+\item{Z}{the reduced dimension space}
+\item{stree}{the smooth tree graph embedded in the low dimension space}
+\item{Y}{latent points as the center of Z}
+\item{X}{original data passed to DDRTree function}
+\item{objective_value}{the objective value at each iteration}
+\item{history}{\mathbf{W}, \mathbf{Z}, \mathbf{stree}, \mathbf{Y} generated at each iteraction. Currently it is setted as NULL or no history is returned}
 }
 \description{
 Perform DDRTree construction

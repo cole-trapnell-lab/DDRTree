@@ -124,10 +124,12 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
                             bool verbose,
                             MatrixXd& Y_out,
                             SpMat& stree,
-                            MatrixXd& Z_out){
+                            MatrixXd& Z_out, 
+                            MatrixXd W_out,
+                            std::vector<double> objective_vals){
 
     Y_out = Y_in;
-    MatrixXd W_out = W_in;
+    W_out = W_in;
     Z_out = Z_in;
 
     int N_cells = X_in.cols();
@@ -176,7 +178,7 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
     std::vector < graph_traits < Graph >::vertex_descriptor >
         old_spanning_tree(num_vertices(g));
 
-    std::vector<double> objective_vals;
+    // std::vector<double> objective_vals;
 
     MatrixXd distsqMU;
     MatrixXd L;
@@ -624,16 +626,20 @@ Rcpp::List DDRTree_reduce_dim(SEXP R_X,
     MatrixXd Y_res;
     SpMat stree_res;
     MatrixXd Z_res;
+    MatrixXd W_out;
+    std::vector<double> objective_vals; //a vector for the value for the objective function at each iteration
 
     DDRTree_reduce_dim_cpp(X, Z, Y, W, dimensions, maxiter, num_clusters, sigma, lambda, gamma, eps, verbose, Y_res, stree_res, Z_res);
 
     NumericMatrix X_res;
     NumericMatrix stree;
 
-    return Rcpp::List::create(Rcpp::Named("W") = X,
+    return Rcpp::List::create(Rcpp::Named("W") = W_out, //this really should be W. W can be used to for reverse embedding for missing data 
                               Rcpp::Named("Z") = Z_res,
                               Rcpp::Named("stree") = wrap(stree_res),
-                              Rcpp::Named("Y") = wrap(Y_res));
+                              Rcpp::Named("Y") = wrap(Y_res), 
+                              Rcpp::Named("X") = X,
+                              Rcpp::Named("objective_vals") = objective_vals);
 }
 
 
