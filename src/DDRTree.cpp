@@ -42,7 +42,7 @@ void pca_projection_cpp(const MatrixXd& C, int dimensions,  MatrixXd& W){
     std::vector<std::pair<double,MatrixXd::Index> > D;
     D.reserve(eVals.size());
     for (MatrixXd::Index i=0;i<eVals.size();i++)
-        D.push_back(std::make_pair<double,MatrixXd::Index>(eVals.coeff(i,0),i));
+        D.push_back(std::make_pair<double,MatrixXd::Index>((double)eVals.coeff(i,0),(long)i));
     std::sort(D.rbegin(),D.rend());
     MatrixXd sortedEigs;
     sortedEigs.resize(eVecs.rows(), dimensions);
@@ -125,8 +125,8 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
                             MatrixXd& Y_out,
                             SpMat& stree,
                             MatrixXd& Z_out, 
-                            MatrixXd W_out,
-                            std::vector<double> objective_vals){
+                            MatrixXd& W_out,
+                            std::vector<double>& objective_vals){
 
     Y_out = Y_in;
     W_out = W_in;

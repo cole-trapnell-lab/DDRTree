@@ -1,7 +1,7 @@
 Package: DDRTree
 Type: Package
 Title: Learning Principal Graphs with DDRTree
-Version: 0.1.3
+Version: 0.1.5
 Date: 2016-1-17
 Author: Xiaojie Qiu, Cole Trapnell, Qi Mao, Li Wang
 Depends:
