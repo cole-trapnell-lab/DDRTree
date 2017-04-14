@@ -14,4 +14,3 @@ pca_projection_R(C, L)
 \description{
 Compute the PCA projection
 }
-

@@ -3,6 +3,7 @@
 #' @param C data matrix used for PCA projection
 #' @param L number for the top principal components
 #' @import irlba irlba
+#' @importFrom stats qnorm
 #' @export
 pca_projection_R <- function(C, L) {
     if (L >= min(dim(C))){
@@ -72,6 +73,7 @@ sqdist_R <- function(a, b) {
 #' @param param.gamma regularization parameter for k-means (the prefix of 'param' is used to avoid name collision with gamma)
 #' @param tol relative objective difference
 #' @param verbose emit extensive debug output
+#' @param ... additional arguments passed to DDRTree
 #' @importFrom stats kmeans
 #' @return a list with W, Z, stree, Y, history
 #' W is the orthogonal set of d (dimensions) linear basis vector

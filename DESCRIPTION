@@ -12,4 +12,4 @@ LinkingTo: Rcpp, RcppEigen, BH
 Maintainer: Xiaojie Qiu <xqiu@uw.edu>
 Description: Project data into a reduced dimensional space and construct a principal graph from the reduced dimension.
 License: Artistic License 2.0
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1

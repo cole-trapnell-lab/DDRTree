@@ -14,4 +14,3 @@ get_major_eigenvalue(C, L)
 \description{
 Get the top L eigenvalues
 }
-

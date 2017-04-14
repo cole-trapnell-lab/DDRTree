@@ -17,4 +17,3 @@ a numeric value for the different between a and b
 \description{
 calculate the square distance between a, b
 }
-

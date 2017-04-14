@@ -3,17 +3,23 @@
 \docType{package}
 \name{DDRTree}
 \alias{DDRTree}
+\alias{DDRTree}
+\alias{DDRTree-package}
 \alias{DDRTree-package}
 \title{Perform DDRTree construction}
 \usage{
-DDRTree(X, dimensions = 2, X.model_mat = NULL, maxIter = 20,
+DDRTree(X, dimensions = 2, initial_method = NULL, maxIter = 20,
   sigma = 0.001, lambda = NULL, ncenter = NULL, param.gamma = 10,
-  tol = 0.001, verbose = F)
+  tol = 0.001, verbose = F, ...)
 }
 \arguments{
 \item{X}{a matrix with \eqn{\mathbf{D \times N}} dimension which is needed to perform DDRTree construction}
 
 \item{dimensions}{reduced dimension}
+
+\item{initial_method}{a function to take the data transpose of X as input and then output the reduced dimension,
+row number should not larger than observation and column number should not be larger than variables (like isomap may only
+return matrix on valid sample sets). Sample names of returned reduced dimension should be preserved.}
 
 \item{maxIter}{maximum iterations}
 
@@ -28,16 +34,15 @@ DDRTree(X, dimensions = 2, X.model_mat = NULL, maxIter = 20,
 \item{tol}{relative objective difference}
 
 \item{verbose}{emit extensive debug output}
+
+\item{...}{additional arguments passed to DDRTree}
 }
 \value{
-a list with \mathbf{W}, \mathbf{Z}, \mathbf{stree}, \mathbf{Y}, \mathbf{history}
-\item{W}{the orthogonal set of d (dimensions) linear basis vector}
-\item{Z}{the reduced dimension space}
-\item{stree}{the smooth tree graph embedded in the low dimension space}
-\item{Y}{latent points as the center of Z}
-\item{X}{original data passed to DDRTree function}
-\item{objective_value}{the objective value at each iteration}
-\item{history}{\mathbf{W}, \mathbf{Z}, \mathbf{stree}, \mathbf{Y} generated at each iteraction. Currently it is setted as NULL or no history is returned}
+a list with W, Z, stree, Y, history
+W is the orthogonal set of d (dimensions) linear basis vector
+Z is the reduced dimension space
+stree is the smooth tree graph embedded in the low dimension space
+Y represents latent points as the center of Z
 }
 \description{
 Perform DDRTree construction
@@ -138,6 +143,7 @@ Alternative structure optimization is again used to solve the above problem by s
 We implemented the algorithm mostly in Rcpp for the purpose of efficiency. It also has extensive optimization
 for sparse input data. This implementation is originally based on the matlab code provided from the author of DDRTree paper.
 }
+
 \examples{
 data('iris')
 subset_iris_mat <- as.matrix(t(iris[c(1, 2, 52, 103), 1:4])) #subset the data
@@ -169,4 +175,3 @@ dev.off()
 plot(Y[1, ], Y[2, ], col = 'blue', pch = 2) #center of the Z
 title(main="DDRTree smooth principal graphs", col.main="red", font.main=4)
 }
-
