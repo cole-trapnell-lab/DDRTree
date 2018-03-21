@@ -124,8 +124,10 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
                             bool verbose,
                             MatrixXd& Y_out,
                             SpMat& stree,
-                            MatrixXd& Z_out, 
+                            MatrixXd& Z_out,
                             MatrixXd& W_out,
+                            MatrixXd& Q,
+                            MatrixXd& R,
                             std::vector<double>& objective_vals){
 
     Y_out = Y_in;
@@ -196,7 +198,6 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
     tmp_R.resize(X_in.cols(), num_clusters);
 
     //SpMat R(X_in.cols(), num_clusters);
-    MatrixXd R;
     R.resize(tmp_R.rows(), num_clusters);
 
     //SpMat Gamma(R.cols(), R.cols());
@@ -208,7 +209,6 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
     tmp_dense.resize(Gamma.rows(), Gamma.cols());
 
     //SpMat Q;
-    MatrixXd Q;
     Q.resize(tmp_dense.rows(), R.rows());
 
     MatrixXd C;
@@ -511,7 +511,7 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
 
         if (verbose)
             Rcpp::Rcout << "Computing Y" << std::endl;
-        //Y <- t(solve((params$lambda / params$gamma * L + Gamma), t(Z %*% R)))
+        // Y <- t(solve((params$lambda / params$gamma * L + Gamma), t(Z %*% R)))
         Y_out = L * (lambda / gamma) + Gamma;
         Y_out = Y_out.llt().solve((Z_out * R).transpose()).transpose();
 
@@ -537,6 +537,8 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
     }
     stree = SpMat(N_cells, N_cells);
     stree.setFromTriplets(tripletList.begin(), tripletList.end());
+
+    // Q = Q / X; 
 }
 
 
@@ -628,17 +630,21 @@ Rcpp::List DDRTree_reduce_dim(SEXP R_X,
     MatrixXd Z_res;
     MatrixXd W_out;
     std::vector<double> objective_vals; //a vector for the value for the objective function at each iteration
+    MatrixXd Q;
+    MatrixXd R;
 
-    DDRTree_reduce_dim_cpp(X, Z, Y, W, dimensions, maxiter, num_clusters, sigma, lambda, gamma, eps, verbose, Y_res, stree_res, Z_res, W_out, objective_vals);
+    DDRTree_reduce_dim_cpp(X, Z, Y, W, dimensions, maxiter, num_clusters, sigma, lambda, gamma, eps, verbose, Y_res, stree_res, Z_res, W_out, Q, R, objective_vals);
 
     NumericMatrix X_res;
     NumericMatrix stree;
 
-    return Rcpp::List::create(Rcpp::Named("W") = W_out, //this really should be W. W can be used to for reverse embedding for missing data 
+    return Rcpp::List::create(Rcpp::Named("W") = W_out, //this really should be W. W can be used to for reverse embedding for missing data
                               Rcpp::Named("Z") = Z_res,
                               Rcpp::Named("stree") = wrap(stree_res),
-                              Rcpp::Named("Y") = wrap(Y_res), 
+                              Rcpp::Named("Y") = wrap(Y_res),
                               Rcpp::Named("X") = X,
+                              Rcpp::Named("Q") = Q,
+                              Rcpp::Named("R") = R,
                               Rcpp::Named("objective_vals") = objective_vals);
 }
 

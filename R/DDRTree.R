@@ -158,5 +158,7 @@ DDRTree <- function(X,
     }
     ddrtree_res <- DDRTree_reduce_dim(X, Z, Y, W, dimensions, maxIter, K,  sigma,  lambda,  param.gamma, tol, verbose)
 
-    return(list(W = ddrtree_res$W, Z = ddrtree_res$Z, stree = ddrtree_res$stree, Y = ddrtree_res$Y, X = ddrtree_res$X, objective_vals = ddrtree_res$objective_vals, history = NULL))
+    return(list(W = ddrtree_res$W, Z = ddrtree_res$Z, stree = ddrtree_res$stree, Y = ddrtree_res$Y, X = ddrtree_res$X,
+                R = ddrtree_res$R,  Q = ddrtree_res$Q,
+                objective_vals = ddrtree_res$objective_vals, history = NULL))
 }
