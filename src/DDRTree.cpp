@@ -121,6 +121,7 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
                             double lambda,
                             double gamma,
                             double eps,
+                            bool no_reduction,
                             bool verbose,
                             MatrixXd& Y_out,
                             SpMat& stree,
@@ -499,14 +500,19 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
         const int X_n = W_R.nrow(), X_p = W_R.ncol();
         Map<MatrixXd> W(W_R.begin(), X_n, X_p);
 
-        W_out = W;
+        if (no_reduction == false){
+            W_out = W;
+        }
+
         //pca_projection_cpp((tmp1 + tmp1.transpose()) / 2, dimensions, W_out);
         //Rcpp::Rcout << W_out << std::endl;
 
         if (verbose)
             Rcpp::Rcout << "Computing Z" << std::endl;
         //Z <- t(W) %*% C
-        Z_out = W_out.transpose() * C;
+        if (no_reduction == false){
+            Z_out = W_out.transpose() * C;
+        }
         //Rcpp::Rcout << Z_out << std::endl;
 
         if (verbose)
@@ -538,7 +544,7 @@ void DDRTree_reduce_dim_cpp(const MatrixXd& X_in,
     stree = SpMat(N_cells, N_cells);
     stree.setFromTriplets(tripletList.begin(), tripletList.end());
 
-    // Q = Q / X; 
+    // Q = Q / X;
 }
 
 
@@ -554,11 +560,13 @@ Rcpp::List DDRTree_reduce_dim(SEXP R_X,
                               SEXP R_lambda,
                               SEXP R_gamma,
                               SEXP R_eps,
+                              SEXP R_no_reduction,
                               SEXP R_verbose){
 
     //Rcpp::Rcout << "Mapping verbose" << std::endl;
 
     bool verbose = as<bool>(R_verbose);
+    bool  no_reduction = as<bool>(R_no_reduction);
 
     if (verbose)
         Rcpp::Rcout << "Mapping X" << std::endl;
@@ -633,7 +641,7 @@ Rcpp::List DDRTree_reduce_dim(SEXP R_X,
     MatrixXd Q;
     MatrixXd R;
 
-    DDRTree_reduce_dim_cpp(X, Z, Y, W, dimensions, maxiter, num_clusters, sigma, lambda, gamma, eps, verbose, Y_res, stree_res, Z_res, W_out, Q, R, objective_vals);
+    DDRTree_reduce_dim_cpp(X, Z, Y, W, dimensions, maxiter, num_clusters, sigma, lambda, gamma, eps, no_reduction, verbose, Y_res, stree_res, Z_res, W_out, Q, R, objective_vals);
 
     NumericMatrix X_res;
     NumericMatrix stree;

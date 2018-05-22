@@ -31,8 +31,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // DDRTree_reduce_dim
-Rcpp::List DDRTree_reduce_dim(SEXP R_X, SEXP R_Z, SEXP R_Y, SEXP R_W, SEXP R_dimensions, SEXP R_maxiter, SEXP R_num_clusters, SEXP R_sigma, SEXP R_lambda, SEXP R_gamma, SEXP R_eps, SEXP R_verbose);
-RcppExport SEXP _DDRTree_DDRTree_reduce_dim(SEXP R_XSEXP, SEXP R_ZSEXP, SEXP R_YSEXP, SEXP R_WSEXP, SEXP R_dimensionsSEXP, SEXP R_maxiterSEXP, SEXP R_num_clustersSEXP, SEXP R_sigmaSEXP, SEXP R_lambdaSEXP, SEXP R_gammaSEXP, SEXP R_epsSEXP, SEXP R_verboseSEXP) {
+Rcpp::List DDRTree_reduce_dim(SEXP R_X, SEXP R_Z, SEXP R_Y, SEXP R_W, SEXP R_dimensions, SEXP R_maxiter, SEXP R_num_clusters, SEXP R_sigma, SEXP R_lambda, SEXP R_gamma, SEXP R_eps, SEXP R_no_reduction, SEXP R_verbose);
+RcppExport SEXP _DDRTree_DDRTree_reduce_dim(SEXP R_XSEXP, SEXP R_ZSEXP, SEXP R_YSEXP, SEXP R_WSEXP, SEXP R_dimensionsSEXP, SEXP R_maxiterSEXP, SEXP R_num_clustersSEXP, SEXP R_sigmaSEXP, SEXP R_lambdaSEXP, SEXP R_gammaSEXP, SEXP R_epsSEXP, SEXP R_no_reductionSEXP, SEXP R_verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -47,8 +47,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< SEXP >::type R_lambda(R_lambdaSEXP);
     Rcpp::traits::input_parameter< SEXP >::type R_gamma(R_gammaSEXP);
     Rcpp::traits::input_parameter< SEXP >::type R_eps(R_epsSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type R_no_reduction(R_no_reductionSEXP);
     Rcpp::traits::input_parameter< SEXP >::type R_verbose(R_verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(DDRTree_reduce_dim(R_X, R_Z, R_Y, R_W, R_dimensions, R_maxiter, R_num_clusters, R_sigma, R_lambda, R_gamma, R_eps, R_verbose));
+    rcpp_result_gen = Rcpp::wrap(DDRTree_reduce_dim(R_X, R_Z, R_Y, R_W, R_dimensions, R_maxiter, R_num_clusters, R_sigma, R_lambda, R_gamma, R_eps, R_no_reduction, R_verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -56,7 +57,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_DDRTree_pca_projection", (DL_FUNC) &_DDRTree_pca_projection, 2},
     {"_DDRTree_sqdist", (DL_FUNC) &_DDRTree_sqdist, 2},
-    {"_DDRTree_DDRTree_reduce_dim", (DL_FUNC) &_DDRTree_DDRTree_reduce_dim, 12},
+    {"_DDRTree_DDRTree_reduce_dim", (DL_FUNC) &_DDRTree_DDRTree_reduce_dim, 13},
     {NULL, NULL, 0}
 };
 

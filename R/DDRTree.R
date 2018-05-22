@@ -121,13 +121,20 @@ DDRTree <- function(X,
                         ncenter = NULL,
                         param.gamma = 10,
                         tol = 1e-3,
-                        verbose = F, ...) {
+                        verbose = F,
+                        no_reduction=FALSE,
+                        ...) {
 
     D <- nrow(X)
     N <- ncol(X)
 
     #initialization
-    W <- pca_projection_R(X %*% t(X), dimensions)
+    if (no_reduction){
+        W = diag(D)
+    }else{
+        W <- pca_projection_R(X %*% t(X), dimensions)
+    }
+
     if(is.null(initial_method)){
         Z <- t(W) %*% X
     }
@@ -156,7 +163,7 @@ DDRTree <- function(X,
     if (is.null(lambda)){
         lambda = 5 * ncol(X)
     }
-    ddrtree_res <- DDRTree_reduce_dim(X, Z, Y, W, dimensions, maxIter, K,  sigma,  lambda,  param.gamma, tol, verbose)
+    ddrtree_res <- DDRTree_reduce_dim(X, Z, Y, W, dimensions, maxIter, K,  sigma,  lambda,  param.gamma, tol, no_reduction, verbose)
 
     return(list(W = ddrtree_res$W, Z = ddrtree_res$Z, stree = ddrtree_res$stree, Y = ddrtree_res$Y, X = ddrtree_res$X,
                 R = ddrtree_res$R,  Q = ddrtree_res$Q,
